@@ -9,8 +9,8 @@ namespace TClator
     internal class Calculator
     {
         private readonly Regex inputValidator = new Regex("^([0-9]|[x\\+\\-\\/\\(\\)\\*\\^\\.\\s])*$");
-        List<string> cache;
-        string lastContent = "";
+        private List<string> cache;
+        private string lastContent = "";
 
         public List<string> Response(string content)
         {
