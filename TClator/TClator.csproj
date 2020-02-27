@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5ACB45CF-11AC-4009-B372-FEF692C847B8}</ProjectGuid>
+    <ProjectGuid>{2A4CEEE1-2104-4EFB-B971-9C0E7A9B88B0}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>WinTools</RootNamespace>
-    <AssemblyName>WinTools</AssemblyName>
+    <RootNamespace>TClator</RootNamespace>
+    <AssemblyName>TClator</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

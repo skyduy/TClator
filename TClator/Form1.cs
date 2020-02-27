@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace WinTools
+namespace TClator
 {
     public partial class Form1 : Form
     {
@@ -160,6 +160,7 @@ namespace WinTools
                     {
                         case 100:    // Alt + Q
                             this.WindowState = FormWindowState.Normal;
+                            this.textBox1.Text = string.Empty;
                             this.Show();
                             this.Activate();
                             break;
@@ -173,6 +174,11 @@ namespace WinTools
         {
             //注销Id号为100的热键设定
             SystemHotKey.UnRegHotKey(this.Handle, 100); //销毁热键
+        }
+
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+
         }
     }
 
