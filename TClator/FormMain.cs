@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace TClator
 {
-    public partial class Form1 : Form
+    public partial class FormMain : Form
     {
+        private List<int> hotkeyIDs= new List<int>();
         private bool mouseDown;
         private Point lastLocation;
         private readonly Timer timer = new Timer();
@@ -14,7 +15,7 @@ namespace TClator
         private ListBox resultList = new ListBox();
         private Size initFormSize;
 
-        public Form1()
+        public FormMain()
         {
             InitializeComponent();
 
@@ -37,9 +38,8 @@ namespace TClator
 
         private void notifyIcon1_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)//判断鼠标的按键
+            if (e.Button == MouseButtons.Left)
             {
-                //点击时判断form是否显示,显示就隐藏,隐藏就显示
                 if (this.WindowState == FormWindowState.Normal)
                 {
                     this.WindowState = FormWindowState.Minimized;
@@ -54,10 +54,8 @@ namespace TClator
             }
             else if (e.Button == MouseButtons.Right)
             {
-                //右键退出事件
                 if (MessageBox.Show("是否需要关闭程序？", "提示:", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation) == DialogResult.OK)//出错提示
                 {
-                    //关闭窗口
                     DialogResult = DialogResult.No;
                     Dispose();
                     Close();
@@ -132,11 +130,27 @@ namespace TClator
             this.Location = lastLocation;
             this.Update();
 
-            timer.Interval = 500;//延时500毫秒
+            // delay 500ms
+            timer.Interval = 500;
             timer.Tick += new EventHandler(timer_Tick);
 
-            //注册热键Shift+Space，Id号为100。
-            SystemHotKey.RegHotKey(this.Handle, 100, SystemHotKey.KeyModifiers.Alt, Keys.Q);
+            // Hotkey register
+            this.hotkeyIDs.Clear();
+            int Alt_Q = 100;
+            if (SystemHotKey.RegHotKey(this.Handle, Alt_Q, SystemHotKey.KeyModifiers.Alt, Keys.Q, "Alt+Q"))
+            {
+                this.hotkeyIDs.Add(Alt_Q);
+            }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // cancel hotkey
+            foreach (int i in this.hotkeyIDs)
+            {
+                SystemHotKey.UnRegHotKey(this.Handle, i);
+            }
+            this.hotkeyIDs.Clear();
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -170,80 +184,5 @@ namespace TClator
             base.WndProc(ref m);
         }
 
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            //注销Id号为100的热键设定
-            SystemHotKey.UnRegHotKey(this.Handle, 100); //销毁热键
-        }
-
-        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-
-        }
-    }
-
-    public class SystemHotKey
-    {
-        /// <summary>
-        /// 如果函数执行成功，返回值不为0。
-        /// 如果函数执行失败，返回值为0。要得到扩展错误信息，调用GetLastError。
-        /// </summary>
-        /// <param name="hWnd">要定义热键的窗口的句柄</param>
-        /// <param name="id">定义热键ID（不能与其它ID重复）</param>
-        /// <param name="fsModifiers">标识热键是否在按Alt、Ctrl、Shift、Windows等键时才会生效</param>
-        /// <param name="vk">定义热键的内容</param>
-        /// <returns></returns>
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool RegisterHotKey(IntPtr hWnd, int id, KeyModifiers fsModifiers, Keys vk);
-
-        /// <summary>
-        /// 注销热键
-        /// </summary>
-        /// <param name="hWnd">要取消热键的窗口的句柄</param>
-        /// <param name="id">要取消热键的ID</param>
-        /// <returns></returns>
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-
-        /// <summary>
-        /// 辅助键名称。
-        /// Alt, Ctrl, Shift, WindowsKey
-        /// </summary>
-        [Flags()]
-        public enum KeyModifiers { None = 0, Alt = 1, Ctrl = 2, Shift = 4, WindowsKey = 8 }
-
-        /// <summary>
-        /// 注册热键
-        /// </summary>
-        /// <param name="hwnd">窗口句柄</param>
-        /// <param name="hotKey_id">热键ID</param>
-        /// <param name="keyModifiers">组合键</param>
-        /// <param name="key">热键</param>
-        public static void RegHotKey(IntPtr hwnd, int hotKeyId, KeyModifiers keyModifiers, Keys key)
-        {
-            if (!RegisterHotKey(hwnd, hotKeyId, keyModifiers, key))
-            {
-                int errorCode = Marshal.GetLastWin32Error();
-                if (errorCode == 1409)
-                {
-                    MessageBox.Show("热键被占用 ！");
-                }
-                else
-                {
-                    MessageBox.Show("注册热键失败！错误代码：" + errorCode);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 注销热键
-        /// </summary>
-        /// <param name="hwnd">窗口句柄</param>
-        /// <param name="hotKey_id">热键ID</param>
-        public static void UnRegHotKey(IntPtr hwnd, int hotKeyId)
-        {
-            //注销指定的热键
-            UnregisterHotKey(hwnd, hotKeyId);
-        }
     }
 }
