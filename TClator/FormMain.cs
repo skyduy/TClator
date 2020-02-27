@@ -40,7 +40,7 @@ namespace TClator
                 {
                     if (Char.IsDigit(content[0]) || content[0] == '-')
                     {
-                        this.calc.response(content, ref this.answers);
+                        this.calc.Response(content, ref this.answers);
                     }
                     else
                     {
