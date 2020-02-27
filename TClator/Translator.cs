@@ -30,67 +30,92 @@ namespace TClator
 
     internal class Translator
     {
+        // TODO 可优化
+        private List<string> cache;
+
+        private string lastValid = "";
         private readonly string url = "https://openapi.youdao.com/api";
         private readonly Dictionary<String, String> dic = new Dictionary<String, String>();
 
-        public void Response(string q, ref List<string> answers, string appKey, string appSecret)
+        public List<string> Response(string q, string appKey, string appSecret)
         {
-            //appKey = "7e4fddcfcad0c806";
-            //appSecret = "SGd9DeU5QEY5c7lmNRz5JjAApeBrxNXw";
+            Console.WriteLine(q);
+            if (q == lastValid)
+            {
+                return cache;
+            }
+            Console.WriteLine(q);
 
             this.ConstructDict(q, appKey, appSecret);
-            string data = this.Fetch();
-            if (data != string.Empty)
+            List<string> answers = new List<string>();
+
+            string data;
+            try
             {
-                TranslateResult o = JsonConvert.DeserializeObject<TranslateResult>(data);
-                if (o.ErrorCode == 0)
-                {
-                    if (o.Translation != null)
-                    {
-                        var translation = string.Join(", ", o.Translation.ToArray());
-                        var title = translation;
-                        if (o.Basic?.Phonetic != null)
-                        {
-                            title += " [" + o.Basic.Phonetic + "]";
-                        }
-                        answers.Add("[简] " + title);
-                    }
-
-                    if (o.Basic?.Explains != null)
-                    {
-                        var explantion = string.Join(",", o.Basic.Explains.ToArray());
-                        answers.Add("[译] " + explantion);
-                    }
-
-                    if (o.Web != null)
-                    {
-                        foreach (WebTranslation t in o.Web)
-                        {
-                            var translation = string.Join(",", t.Value.ToArray());
-                            answers.Add("[网] " + translation);
-                        }
-                    }
-                }
-                else
-                {
-                    string error;
-                    switch (o.ErrorCode)
-                    {
-                        case 108:
-                            error = "[有道智云] 应用ID不正确（请右击托盘图标设置）";
-                            break;
-
-                        case 202:
-                            error = "[有道智云] 签名检验失败（请右击托盘图标设置）";
-                            break;
-
-                        default:
-                            error = "[有道智云] 错误代码" + o.ErrorCode;
-                            break;
-                    }
-                    answers.Add(error);
-                }
+                data = this.Fetch();
             }
+            catch (Exception e)
+            {
+                answers.Add("[请求超时]" + e.Message);
+                return answers;
+            }
+
+            if (data == string.Empty)
+            {
+                return answers;
+            }
+
+            TranslateResult o = JsonConvert.DeserializeObject<TranslateResult>(data);
+            if (o.ErrorCode == 0)
+            {
+                if (o.Translation != null)
+                {
+                    var translation = string.Join(", ", o.Translation.ToArray());
+                    var title = translation;
+                    if (o.Basic?.Phonetic != null)
+                    {
+                        title += " [" + o.Basic.Phonetic + "]";
+                    }
+                    answers.Add("[简] " + title);
+                }
+
+                if (o.Basic?.Explains != null)
+                {
+                    var explantion = string.Join(",", o.Basic.Explains.ToArray());
+                    answers.Add("[译] " + explantion);
+                }
+
+                if (o.Web != null)
+                {
+                    foreach (WebTranslation t in o.Web)
+                    {
+                        var translation = string.Join(",", t.Value.ToArray());
+                        answers.Add("[网] " + translation);
+                    }
+                }
+                lastValid = q;
+                cache = answers;
+            }
+            else
+            {
+                string error;
+                switch (o.ErrorCode)
+                {
+                    case 108:
+                        error = "[有道智云] 应用ID不正确（请右击托盘图标设置）";
+                        break;
+
+                    case 202:
+                        error = "[有道智云] 签名检验失败（请右击托盘图标设置）";
+                        break;
+
+                    default:
+                        error = "[有道智云] 错误代码" + o.ErrorCode;
+                        break;
+                }
+                answers.Add(error);
+            }
+            return answers;
         }
 
         private void ConstructDict(string q, string appKey, string appSecret)

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
@@ -16,7 +17,6 @@ namespace TClator
         private readonly Timer timer = new Timer();
         private readonly List<int> hotkeyIDs = new List<int>();
 
-        private List<string> answers = new List<string>();
         private readonly Calculator calc = new Calculator();
         private readonly Translator trans = new Translator();
 
@@ -67,37 +67,63 @@ namespace TClator
             base.WndProc(ref m);
         }
 
+        private void GetAnswers(object sender, DoWorkEventArgs e)
+        {
+            // 后台线程, 使用参数传递数据
+            string content = (string)e.Argument;
+            List<string> answers = new List<string>();
+            if (content != string.Empty)
+            {
+                if (Char.IsDigit(content[0]) || content[0] == '-')
+                {
+                    answers = this.calc.Response(content);
+                }
+                else
+                {
+                    answers = this.trans.Response(content, this.setting.appKey, this.setting.appSecret);
+                }
+            }
+            e.Result = answers;
+        }
+
+        private void ShowAnswers(object sender, RunWorkerCompletedEventArgs e)
+        {
+            // 后台线程已经完成，并返回了主线程，可以直接使用UI控件了
+            List<string> answers = (List<string>)e.Result;
+            if (answers.Count > 0)
+            {
+                this.ResultList.Height = Math.Min(answers.Count, 5) * this.ResultList.Font.Height;
+                this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.ResultList.Height);
+                foreach (string item in answers)
+                {
+                    this.ResultList.Items.Add(item);
+                }
+                this.ResultList.Show();
+            }
+            else
+            {
+                this.ResultList.Hide();
+                this.Size = this.initFormSize;
+            }
+        }
+
         private void Timer_Tick(object sender, EventArgs e)
         {
             lock (this)
             {
+                // timer activate
                 timer.Stop();
-                this.answers.Clear();
+
+                // Prepare
                 this.ResultList.Items.Clear();
                 string content = TextBox.Text.Trim();
-                if (content != string.Empty)
-                {
-                    if (Char.IsDigit(content[0]) || content[0] == '-')
-                    {
-                        this.calc.Response(content, ref this.answers);
-                    }
-                    else
-                    {
-                        this.trans.Response(content, ref this.answers, this.setting.appKey, this.setting.appSecret);
-                    }
 
-                    this.ResultList.Height = Math.Min(this.answers.Count, 5) * this.ResultList.Font.Height;
-                    this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.ResultList.Height);
-                    foreach (string item in this.answers)
-                    {
-                        this.ResultList.Items.Add(item);
-                    }
-                    this.ResultList.Show();
-                }
-                else
+                // BackgroundWorker
+                using (BackgroundWorker bw = new BackgroundWorker())
                 {
-                    this.ResultList.Hide();
-                    this.Size = this.initFormSize;
+                    bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ShowAnswers);
+                    bw.DoWork += new DoWorkEventHandler(GetAnswers);
+                    bw.RunWorkerAsync(content);
                 }
             }
         }
@@ -106,6 +132,7 @@ namespace TClator
         {
             lock (this)
             {
+                // refresh timer
                 timer.Stop();
                 timer.Start();
             }
@@ -120,7 +147,7 @@ namespace TClator
 
             this.ResultList.Hide();
 
-            // delay 300ms
+            // set timer 300ms
             timer.Interval = 300;
             timer.Tick += new EventHandler(Timer_Tick);
 

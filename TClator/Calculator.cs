@@ -9,20 +9,34 @@ namespace TClator
     internal class Calculator
     {
         private readonly Regex inputValidator = new Regex("^([0-9]|[x\\+\\-\\/\\(\\)\\*\\^\\.\\s])*$");
+        List<string> cache;
+        string lastContent = "";
 
-        public void Response(string content, ref List<string> answers)
+        public List<string> Response(string content)
         {
-            content = this.Preprocess(content);
-            if (content == string.Empty) return;
+            System.Diagnostics.Debug.WriteLine(content);
+            if (content == lastContent)
+            {
+                return cache;
+            }
 
-            content = this.ConvertInfixToPostfix(content);
-            try
+            List<string> answers = new List<string>();
+            content = this.Preprocess(content);
+            if (content != string.Empty)
             {
-                answers.Add(this.EvaluatePostfixExpression(content).ToString());
+                content = this.ConvertInfixToPostfix(content);
+                try
+                {
+                    answers.Add(this.EvaluatePostfixExpression(content).ToString());
+                }
+                catch (Exception)
+                {
+                }
             }
-            catch (Exception)
-            {
-            }
+
+            lastContent = content;
+            cache = answers;
+            return answers;
         }
 
         private string Preprocess(string input)
