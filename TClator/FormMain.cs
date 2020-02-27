@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace TClator
@@ -18,14 +20,51 @@ namespace TClator
         private readonly Calculator calc = new Calculator();
         private readonly Translator trans = new Translator();
 
+        private bool inSetting = false;
+        private readonly FormYoudao youdao = new FormYoudao();
+        private Setting setting = new Setting();
+        private readonly string fn = "config.json";
+
         public FormMain()
         {
             InitializeComponent();
 
             this.FormBorderStyle = FormBorderStyle.None;
             this.ShowInTaskbar = false;
-
             this.initFormSize = this.Size;
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Escape)
+            {
+                this.Hide();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_HOTKEY = 0x0312;
+            //按快捷键
+            switch (m.Msg)
+            {
+                case WM_HOTKEY:
+                    switch (m.WParam.ToInt32())
+                    {
+                        case 100:    // Alt + Q
+                            this.WindowState = FormWindowState.Normal;
+                            this.ResultList.SelectedIndex = -1;
+                            this.TextBox.SelectAll();
+                            this.TextBox.Focus();
+                            this.Show();
+                            this.Activate();
+                            break;
+                    }
+                    break;
+            }
+            base.WndProc(ref m);
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -44,7 +83,7 @@ namespace TClator
                     }
                     else
                     {
-                        this.trans.response(content, ref this.answers);
+                        this.trans.Response(content, ref this.answers, this.setting.appKey, this.setting.appSecret);
                     }
 
                     this.ResultList.Height = Math.Min(this.answers.Count, 5) * this.ResultList.Font.Height;
@@ -92,6 +131,9 @@ namespace TClator
             {
                 this.hotkeyIDs.Add(Alt_Q);
             }
+
+            // load setting
+            this.LoadJson();
         }
 
         private void Form_MouseDown(object sender, MouseEventArgs e)
@@ -121,33 +163,6 @@ namespace TClator
             this.Hide();
         }
 
-        private void NotifyIcon_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                if (this.WindowState == FormWindowState.Normal)
-                {
-                    this.WindowState = FormWindowState.Minimized;
-                    this.Hide();
-                }
-                else if (this.WindowState == FormWindowState.Minimized)
-                {
-                    this.Show();
-                    this.WindowState = FormWindowState.Normal;
-                    this.Activate();
-                }
-            }
-            else if (e.Button == MouseButtons.Right)
-            {
-                if (MessageBox.Show("是否需要关闭程序？", "提示:", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation) == DialogResult.OK)//出错提示
-                {
-                    DialogResult = DialogResult.No;
-                    Dispose();
-                    Close();
-                }
-            }
-        }
-
         private void Form_FormClosing(object sender, FormClosingEventArgs e)
         {
             // cancel hotkey
@@ -156,39 +171,6 @@ namespace TClator
                 SystemHotKey.UnRegHotKey(this.Handle, i);
             }
             this.hotkeyIDs.Clear();
-        }
-
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-        {
-            if (keyData == Keys.Escape)
-            {
-                this.Hide();
-                return true;
-            }
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
-
-        protected override void WndProc(ref Message m)
-        {
-            const int WM_HOTKEY = 0x0312;
-            //按快捷键
-            switch (m.Msg)
-            {
-                case WM_HOTKEY:
-                    switch (m.WParam.ToInt32())
-                    {
-                        case 100:    // Alt + Q
-                            this.WindowState = FormWindowState.Normal;
-                            this.ResultList.SelectedIndex = -1;
-                            this.TextBox.SelectAll();
-                            this.TextBox.Focus();
-                            this.Show();
-                            this.Activate();
-                            break;
-                    }
-                    break;
-            }
-            base.WndProc(ref m);
         }
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e)
@@ -223,5 +205,73 @@ namespace TClator
                 Clipboard.SetData(DataFormats.StringFormat, s);
             }
         }
+
+        private void NotifyIcon_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                if (this.WindowState == FormWindowState.Normal)
+                {
+                    this.WindowState = FormWindowState.Minimized;
+                    this.Hide();
+                }
+                else if (this.WindowState == FormWindowState.Minimized)
+                {
+                    this.Show();
+                    this.WindowState = FormWindowState.Normal;
+                    this.Activate();
+                }
+            }
+        }
+
+        private void ToolStripMenuItemExit_Click(object sender, EventArgs e)
+        {
+            Dispose();
+            Close();
+        }
+
+        private void ToolStripMenuItemKeySetting_Click(object sender, EventArgs e)
+        {
+            if (this.inSetting)
+            {
+                this.youdao.Focus();
+                return;
+            }
+            this.inSetting = true;
+            this.LoadJson();
+            youdao.appKey = this.setting.appKey;
+            youdao.appSecret = this.setting.appSecret;
+            if (this.youdao.ShowDialog() == DialogResult.OK)
+            {
+                this.setting.appKey = youdao.appKey;
+                this.setting.appSecret = youdao.appSecret;
+            };
+            this.DumpJson();
+            this.inSetting = false;
+        }
+
+        private void LoadJson()
+        {
+            if (File.Exists(fn))
+            {
+                using (StreamReader r = new StreamReader(this.fn))
+                {
+                    string json = r.ReadToEnd();
+                    this.setting = JsonConvert.DeserializeObject<Setting>(json);
+                }
+            }
+        }
+
+        private void DumpJson()
+        {
+            string json = JsonConvert.SerializeObject(this.setting);
+            File.WriteAllText(this.fn, json);
+        }
+    }
+
+    public class Setting
+    {
+        public string appKey = "";
+        public string appSecret = "";
     }
 }

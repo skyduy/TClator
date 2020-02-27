@@ -215,7 +215,7 @@ namespace TClator
                                 break;
                         }
                     }
-                    catch (IndexOutOfRangeException e)
+                    catch (IndexOutOfRangeException)
                     {
                         throw new FormatException("Invalid format. Please avoid double negation (--5) and rewrite negative numbers as 0 - n.");
                     }

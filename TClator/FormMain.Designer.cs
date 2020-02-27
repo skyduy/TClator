@@ -30,17 +30,14 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
-            this.NotifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.TextBox = new System.Windows.Forms.TextBox();
             this.ResultList = new System.Windows.Forms.ListBox();
+            this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItemKeySetting = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemExit = new System.Windows.Forms.ToolStripMenuItem();
+            this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // NotifyIcon
-            // 
-            this.NotifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("NotifyIcon.Icon")));
-            this.NotifyIcon.Text = "winTools";
-            this.NotifyIcon.Visible = true;
-            this.NotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.NotifyIcon_MouseClick);
             // 
             // TextBox
             // 
@@ -66,6 +63,37 @@
             this.ResultList.TabIndex = 1;
             this.ResultList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ResultList_KeyDown);
             // 
+            // contextMenuStrip
+            // 
+            this.contextMenuStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItemKeySetting,
+            this.toolStripMenuItemExit});
+            this.contextMenuStrip.Name = "contextMenuStrip1";
+            this.contextMenuStrip.Size = new System.Drawing.Size(166, 52);
+            // 
+            // toolStripMenuItemKeySetting
+            // 
+            this.toolStripMenuItemKeySetting.Name = "toolStripMenuItemKeySetting";
+            this.toolStripMenuItemKeySetting.Size = new System.Drawing.Size(165, 24);
+            this.toolStripMenuItemKeySetting.Text = "有道Key设置";
+            this.toolStripMenuItemKeySetting.Click += new System.EventHandler(this.ToolStripMenuItemKeySetting_Click);
+            // 
+            // toolStripMenuItemExit
+            // 
+            this.toolStripMenuItemExit.Name = "toolStripMenuItemExit";
+            this.toolStripMenuItemExit.Size = new System.Drawing.Size(165, 24);
+            this.toolStripMenuItemExit.Text = "Exit";
+            this.toolStripMenuItemExit.Click += new System.EventHandler(this.ToolStripMenuItemExit_Click);
+            // 
+            // notifyIcon
+            // 
+            this.notifyIcon.ContextMenuStrip = this.contextMenuStrip;
+            this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
+            this.notifyIcon.Text = "TClator";
+            this.notifyIcon.Visible = true;
+            this.notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.NotifyIcon_MouseClick);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
@@ -83,16 +111,19 @@
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.Form_MouseUp);
+            this.contextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.NotifyIcon NotifyIcon;
         private System.Windows.Forms.TextBox TextBox;
         private System.Windows.Forms.ListBox ResultList;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemKeySetting;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemExit;
+        private System.Windows.Forms.NotifyIcon notifyIcon;
     }
 }
 
