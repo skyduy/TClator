@@ -30,7 +30,7 @@ namespace TClator
 
     internal class Translator
     {
-        // TODO 可优化
+        // TODO 可优化：使用字典存储
         private List<string> cache;
 
         private string lastValid = "";
@@ -39,13 +39,10 @@ namespace TClator
 
         public List<string> Response(string q, string appKey, string appSecret)
         {
-            Console.WriteLine(q);
             if (q == lastValid)
             {
                 return cache;
             }
-            Console.WriteLine(q);
-
             this.ConstructDict(q, appKey, appSecret);
             List<string> answers = new List<string>();
 
