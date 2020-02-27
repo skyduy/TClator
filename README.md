@@ -15,15 +15,15 @@ ShortKey: `ALT+Q`
 ![Caculator](https://github.com/skyduy/TClator/blob/master/assets/calc.jpg)
 
 ### Translator
-- Setting appKey and appSecert from [有道智云](http://ai.youdao.com/fanyi-services.s?null)
+- Setting appKey and appSecert from [鏈夐亾鏅轰簯](http://ai.youdao.com/fanyi-services.s?null)
 
 ![Setting](https://github.com/skyduy/TClator/blob/master/assets/setting.jpg)
 
 - And try it!
 
-![中文到英文](https://github.com/skyduy/TClator/blob/master/assets/zh2en.jpg)
+![涓枃鍒拌嫳鏂囩炕璇慮(https://github.com/skyduy/TClator/blob/master/assets/zh2en.jpg)
 
-![English to Chinease](https://github.com/skyduy/TClator/blob/master/assets/en2zh.jpg)
+![English to Chinese](https://github.com/skyduy/TClator/blob/master/assets/en2zh.jpg)
 ## Thanks
 - https://github.com/kurtcarpenter/stack-based-calculator
 - [Youdao API](https://ai.youdao.com/DOCSIRMA/html/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E7%BF%BB%E8%AF%91/API%E6%96%87%E6%A1%A3/%E6%96%87%E6%9C%AC%E7%BF%BB%E8%AF%91%E6%9C%8D%E5%8A%A1/%E6%96%87%E6%9C%AC%E7%BF%BB%E8%AF%91%E6%9C%8D%E5%8A%A1-API%E6%96%87%E6%A1%A3.html)
