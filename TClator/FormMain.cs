@@ -76,6 +76,7 @@ namespace TClator
             {
                 if (Char.IsDigit(content[0]) || content[0] == '-')
                 {
+                    content = "0" + content;
                     answers = this.calc.Response(content);
                 }
                 else
