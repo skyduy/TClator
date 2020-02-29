@@ -74,7 +74,7 @@ namespace TClator
             List<string> answers = new List<string>();
             if (content != string.Empty)
             {
-                if (Char.IsDigit(content[0]) || content[0] == '-')
+                if (Char.IsDigit(content[0]) || content[0] == '-' || content[0] == '(')
                 {
                     content = "0" + content;
                     answers = this.calc.Response(content);
