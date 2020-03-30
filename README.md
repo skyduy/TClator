@@ -15,7 +15,7 @@ ShortKey: `ALT+Q`
 ![Caculator](https://github.com/skyduy/TClator/blob/master/assets/calc.jpg)
 
 ### Translator
-- Setting appKey and appSecert from [有道智云](http://ai.youdao.com/fanyi-services.s?null)
+- Setting appKey and appSecret from [有道智云](http://ai.youdao.com/fanyi-services.s?null)
 
 ![Setting](https://github.com/skyduy/TClator/blob/master/assets/setting.jpg)
 
