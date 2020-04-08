@@ -43,23 +43,23 @@
             // 
             this.TextBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.TextBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.TextBox.Font = new System.Drawing.Font("微软雅黑", 21.78151F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.TextBox.Location = new System.Drawing.Point(12, 17);
+            this.TextBox.Font = new System.Drawing.Font("微软雅黑", 18.15126F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.TextBox.Location = new System.Drawing.Point(9, 10);
             this.TextBox.Name = "TextBox";
-            this.TextBox.Size = new System.Drawing.Size(966, 55);
+            this.TextBox.Size = new System.Drawing.Size(930, 47);
             this.TextBox.TabIndex = 0;
             this.TextBox.TextChanged += new System.EventHandler(this.TextBox_TextChanged);
             this.TextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TextBox_KeyDown);
             // 
             // ResultList
             // 
-            this.ResultList.Font = new System.Drawing.Font("微软雅黑", 21.78151F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.ResultList.Font = new System.Drawing.Font("微软雅黑", 18.15126F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.ResultList.FormattingEnabled = true;
             this.ResultList.IntegralHeight = false;
-            this.ResultList.ItemHeight = 46;
-            this.ResultList.Location = new System.Drawing.Point(12, 73);
+            this.ResultList.ItemHeight = 39;
+            this.ResultList.Location = new System.Drawing.Point(9, 59);
             this.ResultList.Name = "ResultList";
-            this.ResultList.Size = new System.Drawing.Size(966, 4);
+            this.ResultList.Size = new System.Drawing.Size(930, 10);
             this.ResultList.TabIndex = 1;
             this.ResultList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ResultList_KeyDown);
             // 
@@ -98,12 +98,13 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(990, 89);
+            this.BackColor = System.Drawing.SystemColors.Control;
+            this.ClientSize = new System.Drawing.Size(948, 66);
             this.Controls.Add(this.ResultList);
             this.Controls.Add(this.TextBox);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FormMain";
-            this.Opacity = 0.9D;
+            this.Opacity = 0.85D;
             this.Text = "TClator";
             this.Deactivate += new System.EventHandler(this.Form_Deactivate);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form_FormClosing);

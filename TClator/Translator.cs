@@ -73,13 +73,15 @@ namespace TClator
                     {
                         title += " [" + o.Basic.Phonetic + "]";
                     }
-                    answers.Add("[简] " + title);
+                    //answers.Add("[简] " + title);
+                    answers.Add(title);
                 }
 
                 if (o.Basic?.Explains != null)
                 {
                     var explantion = string.Join(",", o.Basic.Explains.ToArray());
-                    answers.Add("[译] " + explantion);
+                    //answers.Add("[译] " + explantion);
+                    answers.Add(explantion);
                 }
 
                 if (o.Web != null)
@@ -87,7 +89,8 @@ namespace TClator
                     foreach (WebTranslation t in o.Web)
                     {
                         var translation = string.Join(",", t.Value.ToArray());
-                        answers.Add("[网] " + translation);
+                        //answers.Add("[网] " + translation);
+                        answers.Add(translation);
                     }
                 }
                 lastValid = q;

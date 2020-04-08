@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace TClator
@@ -24,6 +25,8 @@ namespace TClator
         private readonly FormYoudao youdao = new FormYoudao();
         private Setting setting = new Setting();
         private readonly string fn = "config.json";
+
+        private readonly string calcFirst = "0123456789-.(（";
 
         public FormMain()
         {
@@ -56,10 +59,10 @@ namespace TClator
                         case 100:    // Alt + Q
                             this.WindowState = FormWindowState.Normal;
                             this.ResultList.SelectedIndex = -1;
-                            this.TextBox.SelectAll();
-                            this.TextBox.Focus();
                             this.Show();
                             this.Activate();
+                            this.TextBox.SelectAll();
+                            this.TextBox.Focus();
                             break;
                     }
                     break;
@@ -74,9 +77,8 @@ namespace TClator
             List<string> answers = new List<string>();
             if (content != string.Empty)
             {
-                if (Char.IsDigit(content[0]) || content[0] == '-' || content[0] == '(')
+                if (calcFirst.Contains(content[0]))
                 {
-                    content = "0" + content;
                     answers = this.calc.Response(content);
                 }
                 else

@@ -14,6 +14,12 @@ namespace TClator
 
         public List<string> Response(string content)
         {
+            if (content[0] == '.')
+            {
+                content = "0" + content;
+            }
+            content = content.Replace('（', '(').Replace('）', ')');
+            content = content.Replace("**", "^").Replace("<<", "*2^");
             System.Diagnostics.Debug.WriteLine(content);
             if (content == lastContent)
             {
@@ -24,9 +30,9 @@ namespace TClator
             content = this.Preprocess(content);
             if (content != string.Empty)
             {
-                content = this.ConvertInfixToPostfix(content);
                 try
                 {
+                    content = this.ConvertInfixToPostfix(content);
                     answers.Add(this.EvaluatePostfixExpression(content).ToString());
                 }
                 catch (Exception)
