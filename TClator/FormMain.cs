@@ -229,7 +229,7 @@ namespace TClator
                 this.TextBox.Focus();
                 e.Handled = true;
             }
-            else if (e.Control == true && e.KeyCode == Keys.C || e.KeyCode == Keys.Enter)
+            else if (e.KeyCode == Keys.Enter)
             {
                 string s = this.ResultList.SelectedItem.ToString();
                 Clipboard.SetData(DataFormats.StringFormat, s);
