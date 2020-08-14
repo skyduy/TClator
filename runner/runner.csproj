@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2A4CEEE1-2104-4EFB-B971-9C0E7A9B88B0}</ProjectGuid>
+    <ProjectGuid>{2F950575-7761-4C14-ABC7-0F307C1E4F35}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>TClator</RootNamespace>
     <AssemblyName>TClator</AssemblyName>
