@@ -1,25 +1,23 @@
 #ifndef __MODULES__CACULATOR_H__
 #define __MODULES__CACULATOR_H__
+
 #include <string>
 
-extern "C" {
+std::string calculate(const std::string& expression);
 
-__declspec(dllexport) void __stdcall calculate(const char* expression, char* answer, int strlen) {
-    std::string result(expression);
+// src: appKey,secretKey,text
+std::string translate(const std::string& src);
 
-    result = result.substr(0, strlen);
-    std::copy(result.begin(), result.end(), answer);
-    answer[std::min(strlen - 1, (int)result.size())] = 0;
-}
+#define Interface_Str2Str(FUNC_NAME)                                                 \
+    extern "C" __declspec(dllexport) void __stdcall FUNC_NAME(char* dst, int strlen, \
+                                                              const char* src) {     \
+        std::string result = FUNC_NAME(src);                                         \
+        result = result.substr(0, strlen);                                           \
+        std::copy(result.begin(), result.end(), dst);                                \
+        dst[std::min(strlen - 1, (int)result.size())] = 0;                           \
+    }
 
-__declspec(dllexport) void __stdcall translate(const char* src, char* dst, int strlen) {
-    std::string result(src);
-    std::reverse(result.begin(), result.end());
-
-    result = result.substr(0, strlen);
-    std::copy(result.begin(), result.end(), dst);
-    dst[std::min(strlen - 1, (int)result.size())] = 0;
-}
-}
+Interface_Str2Str(calculate);
+Interface_Str2Str(translate);
 
 #endif // !__MODULES__CACULATOR_H__
