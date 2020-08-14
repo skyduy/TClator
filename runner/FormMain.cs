@@ -5,21 +5,23 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 
 namespace TClator
 {
     public partial class FormMain : Form
     {
+        private readonly int BUF_SIZE = 1024;
+        private readonly StringBuilder DLLResult;
+
         private bool mouseDown;
         private Size initFormSize;
         private Point lastLocation;
 
         private readonly Timer timer = new Timer();
         private readonly List<int> hotkeyIDs = new List<int>();
-
-        private readonly Calculator calc = new Calculator();
-        private readonly Translator trans = new Translator();
 
         private bool inSetting = false;
         private readonly FormYoudao youdao = new FormYoudao();
@@ -31,6 +33,8 @@ namespace TClator
         public FormMain()
         {
             InitializeComponent();
+
+            this.DLLResult = new StringBuilder(BUF_SIZE);
 
             this.FormBorderStyle = FormBorderStyle.None;
             this.ShowInTaskbar = false;
@@ -75,6 +79,14 @@ namespace TClator
             base.WndProc(ref m);
         }
 
+        [DllImport(@"C:\Users\jun\src\toys\out\build\x86-Debug\bin\TCLATOR.dll",
+            EntryPoint = "calculate", CallingConvention = CallingConvention.StdCall)]
+        private static extern void Calculate(StringBuilder answer, int len, string expression);
+
+        [DllImport(@"C:\Users\jun\src\toys\out\build\x86-Debug\bin\TCLATOR.dll",
+            EntryPoint = "translate", CallingConvention = CallingConvention.StdCall)]
+        private static extern void Tranlate(StringBuilder dst, int len, string src);
+
         private void GetAnswers(object sender, DoWorkEventArgs e)
         {
             string content = (string)e.Argument;
@@ -82,19 +94,18 @@ namespace TClator
             while (!worker.CancellationPending)
             {
                 // Perform a time consuming operation
-                List<string> answers = new List<string>();
                 if (content != string.Empty)
                 {
                     if (calcFirst.Contains(content[0]))
                     {
-                        answers = this.calc.Response(content);
+                        Calculate(this.DLLResult, BUF_SIZE, content);
                     }
                     else
                     {
-                        answers = this.trans.Response(content, this.setting.appKey, this.setting.appSecret);
+                        Calculate(this.DLLResult, BUF_SIZE, this.setting.appKey + "," + this.setting.appSecret + "," + content);
                     }
                 }
-                e.Result = answers;
+                e.Result = this.DLLResult.ToString();
                 break;
             }
             if (worker.CancellationPending)
@@ -110,10 +121,13 @@ namespace TClator
                 Console.WriteLine("Canceled");
                 return;
             }
-            List<string> answers = (List<string>)e.Result;
-            if (answers.Count > 0)
+            string dllOut = (string)e.Result;
+            char token = ','; // TODO 待定
+            string[] answers = dllOut.Split(token);
+
+            if (answers.Length > 0)
             {
-                this.ResultList.Height = Math.Min(answers.Count, 5) * this.ResultList.Font.Height;
+                this.ResultList.Height = Math.Min(answers.Length, 5) * this.ResultList.Font.Height;
                 this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.ResultList.Height);
                 foreach (string item in answers)
                 {
