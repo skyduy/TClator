@@ -3,21 +3,20 @@
 
 #include <string>
 
-std::string calculate(const std::string& expression);
+__declspec(dllexport) std::string _calculate(const std::string& expression);
 
-// src: appKey,secretKey,text
-std::string translate(const std::string& src);
+__declspec(dllexport) std::string _translate(const std::string& src);
 
 #define Interface_Str2Str(FUNC_NAME)                                                 \
     extern "C" __declspec(dllexport) void __stdcall FUNC_NAME(char* dst, int strlen, \
                                                               const char* src) {     \
-        std::string result = FUNC_NAME(src);                                         \
+        std::string result = _##FUNC_NAME(src);                                      \
         result = result.substr(0, strlen);                                           \
         std::copy(result.begin(), result.end(), dst);                                \
         dst[std::min(strlen - 1, (int)result.size())] = 0;                           \
     }
 
 Interface_Str2Str(calculate);
-Interface_Str2Str(translate);
+Interface_Str2Str(translate); // src: appKey,secretKey,text
 
 #endif // !__MODULES__CACULATOR_H__

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -35,6 +35,11 @@ namespace TClator
             this.FormBorderStyle = FormBorderStyle.None;
             this.ShowInTaskbar = false;
             this.initFormSize = this.Size;
+
+            this.backgroundWorker1.WorkerReportsProgress = false;  // 不支持进度显示
+            this.backgroundWorker1.WorkerSupportsCancellation = true; // 支持取消操作
+            this.backgroundWorker1.DoWork += new DoWorkEventHandler(GetAnswers);
+            this.backgroundWorker1.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ShowAnswers);
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -72,26 +77,39 @@ namespace TClator
 
         private void GetAnswers(object sender, DoWorkEventArgs e)
         {
-            // 后台线程, 使用参数传递数据
             string content = (string)e.Argument;
-            List<string> answers = new List<string>();
-            if (content != string.Empty)
+            BackgroundWorker worker = sender as BackgroundWorker;
+            while (!worker.CancellationPending)
             {
-                if (calcFirst.Contains(content[0]))
+                // Perform a time consuming operation
+                List<string> answers = new List<string>();
+                if (content != string.Empty)
                 {
-                    answers = this.calc.Response(content);
+                    if (calcFirst.Contains(content[0]))
+                    {
+                        answers = this.calc.Response(content);
+                    }
+                    else
+                    {
+                        answers = this.trans.Response(content, this.setting.appKey, this.setting.appSecret);
+                    }
                 }
-                else
-                {
-                    answers = this.trans.Response(content, this.setting.appKey, this.setting.appSecret);
-                }
+                e.Result = answers;
+                break;
             }
-            e.Result = answers;
+            if (worker.CancellationPending)
+            {
+                e.Cancel = true;
+            }
         }
 
         private void ShowAnswers(object sender, RunWorkerCompletedEventArgs e)
         {
-            // 后台线程已经完成，并返回了主线程，可以直接使用UI控件了
+            if (e.Cancelled)
+            {
+                Console.WriteLine("Canceled");
+                return;
+            }
             List<string> answers = (List<string>)e.Result;
             if (answers.Count > 0)
             {
@@ -117,17 +135,21 @@ namespace TClator
                 // timer activate
                 timer.Stop();
 
-                // Prepare
+                // 准备参数
                 this.ResultList.Items.Clear();
                 string content = TextBox.Text.Trim();
 
-                // BackgroundWorker
-                using (BackgroundWorker bw = new BackgroundWorker())
+                // 开始执行
+                if (backgroundWorker1.WorkerSupportsCancellation && backgroundWorker1.IsBusy)
                 {
-                    bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ShowAnswers);
-                    bw.DoWork += new DoWorkEventHandler(GetAnswers);
-                    bw.RunWorkerAsync(content);
+                    // Cancel the asynchronous operation.
+                    backgroundWorker1.CancelAsync();
                 }
+                while (backgroundWorker1.IsBusy)
+                {
+                    Application.DoEvents();
+                }
+                backgroundWorker1.RunWorkerAsync(content);
             }
         }
 
@@ -229,10 +251,11 @@ namespace TClator
                 this.TextBox.Focus();
                 e.Handled = true;
             }
-            else if (e.KeyCode == Keys.Enter)
+            else if (e.KeyCode == Keys.Enter || (e.Control && e.KeyCode == Keys.C))
             {
                 string s = this.ResultList.SelectedItem.ToString();
                 Clipboard.SetData(DataFormats.StringFormat, s);
+                e.SuppressKeyPress = true;
             }
         }
 
