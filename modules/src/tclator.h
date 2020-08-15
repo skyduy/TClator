@@ -3,9 +3,9 @@
 
 #include <string>
 
-__declspec(dllexport) std::string _calculate(const std::string& expression);
+__declspec(dllexport) std::string _calculate(std::string expression);
 
-__declspec(dllexport) std::string _translate(const std::string& src);
+__declspec(dllexport) std::string _translate(std::string src);
 
 #define Interface_Str2Str(FUNC_NAME)                                                 \
     extern "C" __declspec(dllexport) void __stdcall FUNC_NAME(char* dst, int strlen, \
@@ -17,6 +17,6 @@ __declspec(dllexport) std::string _translate(const std::string& src);
     }
 
 Interface_Str2Str(calculate);
-Interface_Str2Str(translate); // src: appKey,secretKey,text
+Interface_Str2Str(translate);
 
 #endif // !__MODULES__CACULATOR_H__
