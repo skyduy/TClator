@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace TClator
@@ -29,6 +29,7 @@ namespace TClator
         private Setting setting = new Setting();
         private readonly string fn = "config.json";
 
+        private readonly string splitToken;  // 0x01
         private readonly string calcFirst = "0123456789-.(（";
 
         private BackgroundWorker bgw;
@@ -36,6 +37,9 @@ namespace TClator
         public FormMain()
         {
             InitializeComponent();
+
+            byte[] b1 = { 0x01 };
+            this.splitToken = Encoding.ASCII.GetString(b1);
 
             this.DLLResult = new StringBuilder(BUF_SIZE);
 
@@ -104,15 +108,20 @@ namespace TClator
                     if (calcFirst.Contains(content[0]))
                     {
                         Calculate(this.DLLResult, BUF_SIZE, content);
-                        System.Threading.Thread.Sleep(3000);
-                        Console.WriteLine("Complete " + content);
                     }
                     else
                     {
-                        Translate(this.DLLResult, BUF_SIZE, this.setting.appKey + "," + this.setting.appSecret + "," + content);
+                        content = String.Join(this.splitToken, new List<string> {
+                            this.setting.appKey, this.setting.appSecret, content
+                        });
+                        Translate(this.DLLResult, BUF_SIZE, content);
                     }
+                    e.Result = this.DLLResult.ToString();
                 }
-                e.Result = this.DLLResult.ToString();
+                else
+                {
+                    e.Result = string.Empty;
+                }
                 break;
             }
             if (worker.CancellationPending)
@@ -127,12 +136,11 @@ namespace TClator
             {
                 return;
             }
-            string dllOut = (string)e.Result;
-            char token = ','; // TODO 待定
-            string[] answers = dllOut.Split(token);
 
-            if (answers.Length > 0)
+            string dllOut = (string)e.Result;
+            if (dllOut != string.Empty)
             {
+                string[] answers = Regex.Split(dllOut, this.splitToken);
                 this.ResultList.Height = Math.Min(answers.Length, 5) * this.ResultList.Font.Height;
                 this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.ResultList.Height);
                 foreach (string item in answers)
@@ -158,14 +166,12 @@ namespace TClator
                 // 准备参数
                 this.ResultList.Items.Clear();
                 string content = TextBox.Text.Trim();
-                Console.WriteLine("Get task " + content);
 
                 // 开始执行
                 if (this.bgw.WorkerSupportsCancellation && this.bgw.IsBusy)
                 {
                     // Cancel the asynchronous operation.
                     this.bgw.CancelAsync();
-
                     this.bgw = new BackgroundWorker
                     {
                         WorkerSupportsCancellation = true
@@ -174,7 +180,6 @@ namespace TClator
                     this.bgw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ShowAnswers);
                 }
 
-                Console.WriteLine("Reader Run " + content);
                 this.bgw.RunWorkerAsync(content);
             }
         }
