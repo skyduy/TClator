@@ -36,7 +36,6 @@
             this.toolStripMenuItemKeySetting = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemExit = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
-            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -126,7 +125,6 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemKeySetting;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemExit;
         private System.Windows.Forms.NotifyIcon notifyIcon;
-        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
 

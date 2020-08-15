@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace TClator
@@ -20,7 +21,7 @@ namespace TClator
         private Size initFormSize;
         private Point lastLocation;
 
-        private readonly Timer timer = new Timer();
+        private readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
         private readonly List<int> hotkeyIDs = new List<int>();
 
         private bool inSetting = false;
@@ -29,6 +30,8 @@ namespace TClator
         private readonly string fn = "config.json";
 
         private readonly string calcFirst = "0123456789-.(（";
+
+        private BackgroundWorker bgw;
 
         public FormMain()
         {
@@ -40,10 +43,12 @@ namespace TClator
             this.ShowInTaskbar = false;
             this.initFormSize = this.Size;
 
-            this.backgroundWorker1.WorkerReportsProgress = false;  // 不支持进度显示
-            this.backgroundWorker1.WorkerSupportsCancellation = true; // 支持取消操作
-            this.backgroundWorker1.DoWork += new DoWorkEventHandler(GetAnswers);
-            this.backgroundWorker1.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ShowAnswers);
+            this.bgw = new BackgroundWorker
+            {
+                WorkerSupportsCancellation = true
+            };
+            this.bgw.DoWork += new DoWorkEventHandler(GetAnswers);
+            this.bgw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ShowAnswers);
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -85,7 +90,7 @@ namespace TClator
 
         [DllImport(@"C:\Users\jun\src\toys\out\build\x86-Debug\bin\TCLATOR.dll",
             EntryPoint = "translate", CallingConvention = CallingConvention.StdCall)]
-        private static extern void Tranlate(StringBuilder dst, int len, string src);
+        private static extern void Translate(StringBuilder dst, int len, string src);
 
         private void GetAnswers(object sender, DoWorkEventArgs e)
         {
@@ -99,10 +104,12 @@ namespace TClator
                     if (calcFirst.Contains(content[0]))
                     {
                         Calculate(this.DLLResult, BUF_SIZE, content);
+                        System.Threading.Thread.Sleep(3000);
+                        Console.WriteLine("Complete " + content);
                     }
                     else
                     {
-                        Calculate(this.DLLResult, BUF_SIZE, this.setting.appKey + "," + this.setting.appSecret + "," + content);
+                        Translate(this.DLLResult, BUF_SIZE, this.setting.appKey + "," + this.setting.appSecret + "," + content);
                     }
                 }
                 e.Result = this.DLLResult.ToString();
@@ -118,7 +125,6 @@ namespace TClator
         {
             if (e.Cancelled)
             {
-                Console.WriteLine("Canceled");
                 return;
             }
             string dllOut = (string)e.Result;
@@ -152,18 +158,24 @@ namespace TClator
                 // 准备参数
                 this.ResultList.Items.Clear();
                 string content = TextBox.Text.Trim();
+                Console.WriteLine("Get task " + content);
 
                 // 开始执行
-                if (backgroundWorker1.WorkerSupportsCancellation && backgroundWorker1.IsBusy)
+                if (this.bgw.WorkerSupportsCancellation && this.bgw.IsBusy)
                 {
                     // Cancel the asynchronous operation.
-                    backgroundWorker1.CancelAsync();
+                    this.bgw.CancelAsync();
+
+                    this.bgw = new BackgroundWorker
+                    {
+                        WorkerSupportsCancellation = true
+                    };
+                    this.bgw.DoWork += new DoWorkEventHandler(GetAnswers);
+                    this.bgw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ShowAnswers);
                 }
-                while (backgroundWorker1.IsBusy)
-                {
-                    Application.DoEvents();
-                }
-                backgroundWorker1.RunWorkerAsync(content);
+
+                Console.WriteLine("Reader Run " + content);
+                this.bgw.RunWorkerAsync(content);
             }
         }
 
