@@ -88,11 +88,11 @@ namespace TClator
             base.WndProc(ref m);
         }
 
-        [DllImport(@"C:\Users\jun\src\toys\out\build\x86-Debug\bin\TCLATOR.dll",
+        [DllImport(@".\tclator.dll",
             EntryPoint = "calculate", CallingConvention = CallingConvention.StdCall)]
         private static extern void Calculate(StringBuilder answer, int len, string expression);
 
-        [DllImport(@"C:\Users\jun\src\toys\out\build\x86-Debug\bin\TCLATOR.dll",
+        [DllImport(@".\tclator.dll",
             EntryPoint = "translate", CallingConvention = CallingConvention.StdCall)]
         private static extern void Translate(StringBuilder dst, int len, string src);
 

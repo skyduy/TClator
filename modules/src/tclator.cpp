@@ -155,7 +155,7 @@ std::string _calculate(std::string expression) {
     while (cur < suffix.length()) {
         if (suffix[cur] == '|') { // 数字
             cur++;
-            int offset = cur;
+            size_t offset = cur;
             while (suffix[cur] != '|') {
                 cur++;
             }
@@ -188,7 +188,19 @@ std::string _calculate(std::string expression) {
     if (number.size() != 1) {
         return "";
     } else {
-        return std::to_string(number.top());
+        std::string ans = std::to_string(number.top());
+        for (char c : ans) {
+            if (c == '.') {
+                while (ans.back() == '0') {
+                    ans.pop_back();
+                }
+                if (ans.back() == '.') {
+                    ans.pop_back();
+                }
+                break;
+            }
+        }
+        return ans;
     }
 }
 
