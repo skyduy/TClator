@@ -1,4 +1,4 @@
-﻿namespace TClator
+namespace TClator
 {
     partial class FormMain
     {
@@ -44,9 +44,10 @@
             this.TextBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.TextBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
             this.TextBox.Font = new System.Drawing.Font("微软雅黑", 18.15126F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.TextBox.Location = new System.Drawing.Point(9, 10);
+            this.TextBox.Location = new System.Drawing.Point(7, 8);
+            this.TextBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.TextBox.Name = "TextBox";
-            this.TextBox.Size = new System.Drawing.Size(930, 47);
+            this.TextBox.Size = new System.Drawing.Size(698, 39);
             this.TextBox.TabIndex = 0;
             this.TextBox.TextChanged += new System.EventHandler(this.TextBox_TextChanged);
             this.TextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TextBox_KeyDown);
@@ -56,10 +57,11 @@
             this.ResultList.Font = new System.Drawing.Font("微软雅黑", 18.15126F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.ResultList.FormattingEnabled = true;
             this.ResultList.IntegralHeight = false;
-            this.ResultList.ItemHeight = 39;
-            this.ResultList.Location = new System.Drawing.Point(9, 59);
+            this.ResultList.ItemHeight = 31;
+            this.ResultList.Location = new System.Drawing.Point(7, 47);
+            this.ResultList.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.ResultList.Name = "ResultList";
-            this.ResultList.Size = new System.Drawing.Size(930, 10);
+            this.ResultList.Size = new System.Drawing.Size(698, 9);
             this.ResultList.TabIndex = 1;
             this.ResultList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ResultList_KeyDown);
             // 
@@ -70,19 +72,19 @@
             this.toolStripMenuItemKeySetting,
             this.toolStripMenuItemExit});
             this.contextMenuStrip.Name = "contextMenuStrip1";
-            this.contextMenuStrip.Size = new System.Drawing.Size(166, 52);
+            this.contextMenuStrip.Size = new System.Drawing.Size(146, 48);
             // 
             // toolStripMenuItemKeySetting
             // 
             this.toolStripMenuItemKeySetting.Name = "toolStripMenuItemKeySetting";
-            this.toolStripMenuItemKeySetting.Size = new System.Drawing.Size(165, 24);
+            this.toolStripMenuItemKeySetting.Size = new System.Drawing.Size(145, 22);
             this.toolStripMenuItemKeySetting.Text = "有道Key设置";
             this.toolStripMenuItemKeySetting.Click += new System.EventHandler(this.ToolStripMenuItemKeySetting_Click);
             // 
             // toolStripMenuItemExit
             // 
             this.toolStripMenuItemExit.Name = "toolStripMenuItemExit";
-            this.toolStripMenuItemExit.Size = new System.Drawing.Size(165, 24);
+            this.toolStripMenuItemExit.Size = new System.Drawing.Size(145, 22);
             this.toolStripMenuItemExit.Text = "Exit";
             this.toolStripMenuItemExit.Click += new System.EventHandler(this.ToolStripMenuItemExit_Click);
             // 
@@ -90,19 +92,20 @@
             // 
             this.notifyIcon.ContextMenuStrip = this.contextMenuStrip;
             this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
-            this.notifyIcon.Text = "TClator";
+            this.notifyIcon.Text = "toys";
             this.notifyIcon.Visible = true;
             this.notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.NotifyIcon_MouseClick);
             // 
             // FormMain
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(948, 66);
+            this.ClientSize = new System.Drawing.Size(711, 53);
             this.Controls.Add(this.ResultList);
             this.Controls.Add(this.TextBox);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "FormMain";
             this.Opacity = 0.85D;
             this.Text = "TClator";
