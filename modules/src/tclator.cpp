@@ -14,11 +14,14 @@
 #include <stack>
 #include <vector>
 
+#include "lru_cache.h"
+
 using json = nlohmann::json;
 using std::cout;
 using std::endl;
 
 const std::string SPLIT_TOKEN(1, 1);
+LRUCache<std::string, std::string> cache(1024);
 
 inline int getPriority(char operate) //栈内优先级
 {
@@ -228,7 +231,6 @@ httplib::Params getPayload(const std::string& appKey, const std::string& appSecr
         ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
     }
     std::string sign = ss.str();
-    cout << sign << endl;
     httplib::Params payload{
             {"from", "auto"}, {"to", "auto"},     {"signType", "v3"}, {"curtime", curtime},
             {"q", q},         {"appKey", appKey}, {"salt", salt},     {"sign", sign},
@@ -237,6 +239,8 @@ httplib::Params getPayload(const std::string& appKey, const std::string& appSecr
 }
 
 std::string _translate(std::string src) {
+    std::string answer;
+
     // 解析 appKey, appSecret, content
     size_t pos = 0;
 
@@ -249,6 +253,11 @@ std::string _translate(std::string src) {
     src.erase(0, pos + SPLIT_TOKEN.length());
 
     std::string q = src;
+    if (cache.get(q, answer)) {
+        std::cout << "cache!" << std::endl;
+        return answer;
+    }
+    std::cout << "no cache!" << std::endl;
 
     // http请求
     httplib::Client cli("openapi.youdao.com");
@@ -273,7 +282,6 @@ std::string _translate(std::string src) {
     }
 
     // 构造答案
-    std::string answer;
     if (o.contains("translation")) {
         if (o.contains("basic") && o["basic"].contains("phonetic")) {
             answer += "[" + o["basic"]["phonetic"].get<std::string>() + "] ";
@@ -306,5 +314,6 @@ std::string _translate(std::string src) {
     }
 
     answer.pop_back(); // delete last SPLIT_TOKEN
+    cache.put(q, answer);
     return answer;
 }

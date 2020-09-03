@@ -30,7 +30,7 @@ namespace TClator
         private readonly string fn = "config.json";
 
         private readonly string splitToken;  // 0x01
-        private readonly string calcFirst = "0123456789-.(（";
+        private readonly string calcFirst = "0123456789-.(";
 
         private BackgroundWorker bgw;
 

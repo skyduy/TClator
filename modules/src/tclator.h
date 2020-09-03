@@ -1,5 +1,5 @@
-#ifndef __MODULES__CACULATOR_H__
-#define __MODULES__CACULATOR_H__
+#ifndef __MODULES__TCLATOR_H__
+#define __MODULES__TCLATOR_H__
 
 #include <string>
 
@@ -19,4 +19,4 @@ __declspec(dllexport) std::string _translate(std::string src);
 Interface_Str2Str(calculate);
 Interface_Str2Str(translate);
 
-#endif // !__MODULES__CACULATOR_H__
+#endif // !__MODULES__TCLATOR_H__
