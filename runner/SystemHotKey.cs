@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace TClator
+namespace toys
 {
     public class SystemHotKey
     {

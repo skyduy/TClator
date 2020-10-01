@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace TClator
+namespace toys
 {
     public partial class FormYoudao : Form
     {

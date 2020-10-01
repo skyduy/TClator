@@ -1,4 +1,4 @@
-namespace TClator
+namespace toys
 {
     partial class FormMain
     {

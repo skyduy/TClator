@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TClator.Properties
+namespace toys.Properties
 {
 
 

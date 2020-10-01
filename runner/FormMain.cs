@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace TClator
+namespace toys
 {
     public partial class FormMain : Form
     {
