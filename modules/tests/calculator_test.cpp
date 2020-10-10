@@ -1,11 +1,13 @@
-#include "tclator.h"
+#include "calculator.h"
 
 #include <gtest/gtest.h>
 
 #include <iostream>
 #include <vector>
 
-TEST(TClator, test_calculate) {
+Calculator calcu;
+
+TEST(Modules, test_calculate) {
     std::vector<std::string> expressions{
             "1+1",         "1 + 1",         "1+ 1",  "1-1", "1-2", "1-3",
             "1*1",         "0*1",           "99*99", "1/2", "1/3", "1/4",
@@ -20,6 +22,6 @@ TEST(TClator, test_calculate) {
     };
 
     for (size_t i = 0; i < expressions.size(); i++) {
-        EXPECT_EQ(_calculate(expressions[i]), answers[i]);
+        EXPECT_EQ(calcu.query(expressions[i]), answers[i]);
     }
 }

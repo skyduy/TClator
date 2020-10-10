@@ -1,11 +1,16 @@
-#ifndef __MODULES__TCLATOR_H__
-#define __MODULES__TCLATOR_H__
+#include "calculator.h"
+#include "translator.h"
 
-#include <string>
+Calculator calcu;
+Translator trans;
 
-__declspec(dllexport) std::string _calculate(std::string expression);
+__declspec(dllexport) std::string _calculate(std::string src) {
+    return calcu.query(src);
+};
 
-__declspec(dllexport) std::string _translate(std::string src);
+__declspec(dllexport) std::string _translate(std::string expression) {
+    return trans.query(expression);
+};
 
 #define Interface_Str2Str(FUNC_NAME)                                                 \
     extern "C" __declspec(dllexport) void __stdcall FUNC_NAME(char* dst, int strlen, \
@@ -18,5 +23,3 @@ __declspec(dllexport) std::string _translate(std::string src);
 
 Interface_Str2Str(calculate);
 Interface_Str2Str(translate);
-
-#endif // !__MODULES__TCLATOR_H__

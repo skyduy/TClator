@@ -1,5 +1,5 @@
-#ifndef __MODULES__LRU_CACHE_H__
-#define __MODULES__LRU_CACHE_H__
+#ifndef __MODULES__CACHE_H__
+#define __MODULES__CACHE_H__
 
 #include <map>
 
@@ -37,9 +37,8 @@ public:
         this->tail = new LinkedNode();
         this->head->next = this->tail;
         this->tail->pre = this->head;
-        std::cout << "create" << std::endl;
     }
-    ~LRUCache() { std::cout << "destory" << std::endl; }
+    ~LRUCache() {}
 
     bool get(const K& key, V& value) {
         if (this->container.find(key) == this->container.end()) {
@@ -79,4 +78,4 @@ public:
     }
 };
 
-#endif // !__MODULES__LRU_CACHE_H__
+#endif // !__MODULES__CACHE_H__

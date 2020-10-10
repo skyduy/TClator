@@ -17,6 +17,7 @@ namespace toys
         private readonly int BUF_SIZE = 1024;
         private readonly StringBuilder DLLResult;
 
+        private bool detailShowing;
         private bool mouseDown;
         private Size initFormSize;
         private Point lastLocation;
@@ -59,7 +60,17 @@ namespace toys
         {
             if (keyData == Keys.Escape)
             {
-                this.Hide();
+                if (detailShowing)
+                {
+                    this.DetailBox.Hide();
+                    detailShowing = false;
+                    this.ResultList.Focus();
+                    this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.ResultList.Height);
+                }
+                else
+                {
+                    this.Hide();
+                }
                 return true;
             }
             return base.ProcessCmdKey(ref msg, keyData);
@@ -77,10 +88,13 @@ namespace toys
                         case 100:    // Alt + Q
                             this.WindowState = FormWindowState.Normal;
                             this.ResultList.SelectedIndex = -1;
+                            this.DetailBox.Hide();
+                            this.detailShowing = false;
                             this.Show();
                             this.Activate();
                             this.TextBox.SelectAll();
                             this.TextBox.Focus();
+                            this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.ResultList.Height);
                             break;
                     }
                     break;
@@ -88,11 +102,11 @@ namespace toys
             base.WndProc(ref m);
         }
 
-        [DllImport(@".\tclator.dll",
+        [DllImport(@".\modules.dll",
             EntryPoint = "calculate", CallingConvention = CallingConvention.StdCall)]
         private static extern void Calculate(StringBuilder answer, int len, string expression);
 
-        [DllImport(@".\tclator.dll",
+        [DllImport(@".\modules.dll",
             EntryPoint = "translate", CallingConvention = CallingConvention.StdCall)]
         private static extern void Translate(StringBuilder dst, int len, string src);
 
@@ -201,6 +215,8 @@ namespace toys
             this.Location = lastLocation;
             this.Update();
 
+            detailShowing = false;
+            this.DetailBox.Hide();
             this.ResultList.Hide();
 
             // set timer 300ms
@@ -282,9 +298,24 @@ namespace toys
                 this.TextBox.Focus();
                 e.Handled = true;
             }
-            else if (e.KeyCode == Keys.Enter || (e.Control && e.KeyCode == Keys.C))
+            else if (e.KeyCode == Keys.Enter)
             {
                 string s = this.ResultList.SelectedItem.ToString();
+                this.DetailBox.Text = s;
+                this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.DetailBox.Height);
+                this.DetailBox.Show();
+                this.DetailBox.Focus();
+                this.DetailBox.SelectionStart = this.DetailBox.TextLength;
+                detailShowing = true;
+            }
+            else if (e.Control && e.KeyCode == Keys.C)
+            {
+                string s = this.ResultList.SelectedItem.ToString();
+                if (s.StartsWith("["))
+                {
+                    string[] items = s.Split(']');
+                    s = string.Join("]", items.Skip(1).ToList()).Trim();
+                }
                 Clipboard.SetData(DataFormats.StringFormat, s);
                 e.SuppressKeyPress = true;
             }

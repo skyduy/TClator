@@ -36,6 +36,7 @@ namespace toys
             this.toolStripMenuItemKeySetting = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemExit = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.DetailBox = new System.Windows.Forms.RichTextBox();
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -45,7 +46,7 @@ namespace toys
             this.TextBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
             this.TextBox.Font = new System.Drawing.Font("微软雅黑", 18.15126F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.TextBox.Location = new System.Drawing.Point(7, 8);
-            this.TextBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.TextBox.Margin = new System.Windows.Forms.Padding(2);
             this.TextBox.Name = "TextBox";
             this.TextBox.Size = new System.Drawing.Size(698, 39);
             this.TextBox.TabIndex = 0;
@@ -59,7 +60,7 @@ namespace toys
             this.ResultList.IntegralHeight = false;
             this.ResultList.ItemHeight = 31;
             this.ResultList.Location = new System.Drawing.Point(7, 47);
-            this.ResultList.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ResultList.Margin = new System.Windows.Forms.Padding(2);
             this.ResultList.Name = "ResultList";
             this.ResultList.Size = new System.Drawing.Size(698, 9);
             this.ResultList.TabIndex = 1;
@@ -96,16 +97,26 @@ namespace toys
             this.notifyIcon.Visible = true;
             this.notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.NotifyIcon_MouseClick);
             // 
+            // DetailBox
+            // 
+            this.DetailBox.Font = new System.Drawing.Font("Arial", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DetailBox.Location = new System.Drawing.Point(7, 47);
+            this.DetailBox.Name = "DetailBox";
+            this.DetailBox.Size = new System.Drawing.Size(698, 177);
+            this.DetailBox.TabIndex = 3;
+            this.DetailBox.Text = "";
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(711, 53);
+            this.Controls.Add(this.DetailBox);
             this.Controls.Add(this.ResultList);
             this.Controls.Add(this.TextBox);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "FormMain";
             this.Opacity = 0.85D;
             this.Text = "TClator";
@@ -128,6 +139,7 @@ namespace toys
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemKeySetting;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemExit;
         private System.Windows.Forms.NotifyIcon notifyIcon;
+        private System.Windows.Forms.RichTextBox DetailBox;
     }
 }
 
