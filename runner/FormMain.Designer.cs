@@ -30,7 +30,7 @@ namespace toys
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
-            this.TextBox = new System.Windows.Forms.TextBox();
+            this.TextBox = new MyTextBox();
             this.ResultList = new System.Windows.Forms.ListBox();
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItemKeySetting = new System.Windows.Forms.ToolStripMenuItem();
@@ -140,6 +140,21 @@ namespace toys
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemExit;
         private System.Windows.Forms.NotifyIcon notifyIcon;
         private System.Windows.Forms.RichTextBox DetailBox;
+    }
+
+    class MyTextBox : System.Windows.Forms.TextBox
+    {
+        protected override void WndProc(ref System.Windows.Forms.Message m)
+        {
+            // Trap WM_PASTE:
+            if (m.Msg == 0x302 && System.Windows.Forms.Clipboard.ContainsText())
+            {
+                this.SelectedText = System.Windows.Forms.Clipboard.GetText().Replace(
+                    System.Environment.NewLine, "");
+                return;
+            }
+            base.WndProc(ref m);
+        }
     }
 }
 

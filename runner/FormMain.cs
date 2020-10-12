@@ -26,7 +26,7 @@ namespace toys
         private Size initFormSize;
         private Point lastLocation;
 
-        private readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
+        private readonly Timer timer = new Timer();
         private readonly List<int> hotkeyIDs = new List<int>();
 
         private bool inSetting = false;
@@ -299,19 +299,6 @@ namespace toys
             }
             else if (e.KeyCode == Keys.Up)
             {
-                e.Handled = true;
-            }
-            else if (e.Control && e.KeyCode == Keys.V)
-            {
-                Console.WriteLine(Clipboard.GetText());
-                TextBox.Text = Clipboard.GetText().ToString().Replace(Environment.NewLine, "");
-                Console.WriteLine(TextBox.Text);
-                lock (this)
-                {
-                    // refresh timer
-                    timer.Stop();
-                    timer.Start();
-                }
                 e.Handled = true;
             }
         }
