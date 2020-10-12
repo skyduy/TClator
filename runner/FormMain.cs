@@ -14,6 +14,9 @@ namespace toys
 {
     public partial class FormMain : Form
     {
+
+        private const int WM_HOTKEY = 0x0312;
+
         private readonly int BUF_SIZE = 1024;
         private readonly StringBuilder DLLResult;
 
@@ -79,7 +82,6 @@ namespace toys
 
         protected override void WndProc(ref Message m)
         {
-            const int WM_HOTKEY = 0x0312;
             //按快捷键
             switch (m.Msg)
             {
@@ -297,6 +299,19 @@ namespace toys
             }
             else if (e.KeyCode == Keys.Up)
             {
+                e.Handled = true;
+            }
+            else if (e.Control && e.KeyCode == Keys.V)
+            {
+                Console.WriteLine(Clipboard.GetText());
+                TextBox.Text = Clipboard.GetText().ToString().Replace(Environment.NewLine, "");
+                Console.WriteLine(TextBox.Text);
+                lock (this)
+                {
+                    // refresh timer
+                    timer.Stop();
+                    timer.Start();
+                }
                 e.Handled = true;
             }
         }
