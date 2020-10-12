@@ -24,3 +24,5 @@ ShortKey: `ALT+Q`
 ![中文到英文翻译](https://github.com/skyduy/TClator/blob/master/doc/images/zh2en.jpg)
 
 ![English to Chinese](https://github.com/skyduy/TClator/blob/master/doc/images/en2zh.jpg)
+
+![detail](https://github.com/skyduy/TClator/blob/master/doc/images/detail.jpg)

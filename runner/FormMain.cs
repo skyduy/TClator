@@ -17,6 +17,7 @@ namespace toys
         private readonly int BUF_SIZE = 1024;
         private readonly StringBuilder DLLResult;
 
+        private int oldHeight;
         private bool detailShowing;
         private bool mouseDown;
         private Size initFormSize;
@@ -88,13 +89,19 @@ namespace toys
                         case 100:    // Alt + Q
                             this.WindowState = FormWindowState.Normal;
                             this.ResultList.SelectedIndex = -1;
-                            this.DetailBox.Hide();
-                            this.detailShowing = false;
                             this.Show();
                             this.Activate();
                             this.TextBox.SelectAll();
                             this.TextBox.Focus();
-                            this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.ResultList.Height);
+
+                            if (this.detailShowing)
+                            {
+
+                                this.DetailBox.Hide();
+                                this.detailShowing = false;
+                                this.Size = new Size(this.initFormSize.Width, oldHeight);
+
+                            }
                             break;
                     }
                     break;
@@ -149,6 +156,11 @@ namespace toys
             if (e.Cancelled)
             {
                 return;
+            }
+            if (detailShowing)
+            {
+                this.DetailBox.Hide();
+                detailShowing = false;
             }
 
             string dllOut = (string)e.Result;
@@ -302,11 +314,12 @@ namespace toys
             {
                 string s = this.ResultList.SelectedItem.ToString();
                 this.DetailBox.Text = s;
-                this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.DetailBox.Height);
                 this.DetailBox.Show();
                 this.DetailBox.Focus();
                 this.DetailBox.SelectionStart = this.DetailBox.TextLength;
                 detailShowing = true;
+                oldHeight = this.Size.Height;
+                this.Size = new Size(this.initFormSize.Width, this.initFormSize.Height + this.DetailBox.Height);
             }
             else if (e.Control && e.KeyCode == Keys.C)
             {
