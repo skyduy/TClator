@@ -101,7 +101,7 @@ namespace Toys.Client.Services
             string data;
             try
             {
-                data = this.FetchYoudao(src, (YoudaoSetting)options);
+                data = FetchYoudao(src, (YoudaoSetting)options);
             }
             catch (Exception e)
             {
@@ -119,27 +119,36 @@ namespace Toys.Client.Services
             {
                 if (o.Translation != null)
                 {
-                    var translation = string.Join(", ", o.Translation.ToArray());
-                    var title = translation;
+                    string phonetic = "";
                     if (o.Basic?.Phonetic != null)
                     {
-                        title += " [" + o.Basic.Phonetic + "]";
+                        phonetic = "[" + o.Basic.Phonetic + "] ";
                     }
-                    answers.Add("[简] " + title);
+                    var translations = o.Translation.ToArray();
+                    string first = phonetic + translations[0];
+                    answers.Add(first);
+                    for (int i = 1; i < translations.Length; i++)
+                    {
+                        answers.Add(translations[i]);
+                    }
                 }
 
                 if (o.Basic?.Explains != null)
                 {
-                    var explantion = string.Join(",", o.Basic.Explains.ToArray());
-                    answers.Add("[译] " + explantion);
+                    foreach (string item in o.Basic.Explains.ToArray())
+                    {
+                        answers.Add(item);
+                    }
                 }
 
                 if (o.Web != null)
                 {
                     foreach (WebTranslation t in o.Web)
                     {
-                        var translation = string.Join(",", t.Value.ToArray());
-                        answers.Add("[网] " + translation);
+                        if (t.Key != src)
+                        {
+                            answers.Add(t.Key + ": " + string.Join(" | ", t.Value.ToArray()));
+                        }
                     }
                 }
                 cache.Add(src, answers);

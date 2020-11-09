@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
+using System.Windows.Controls;
 
 namespace Toys.Client
 {
@@ -19,8 +20,12 @@ namespace Toys.Client
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = new MainWindowViewModel();
-            this.KeyDown += new KeyEventHandler(HandleHotkey);
+
+            Left = (SystemParameters.WorkArea.Width - Width) / 2;
+            Top = SystemParameters.WorkArea.Height / 5;
+
+            DataContext = new MainWindowViewModel();
+            PreviewKeyDown += new KeyEventHandler(HandleHotkey);
             InputBox.Focus();
 
             HotKey AltQ = new HotKey(Key.Q, KeyModifier.Alt, OnHotKeyHandler);
@@ -49,15 +54,54 @@ namespace Toys.Client
 
         private void HandleHotkey(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Escape)
+            if (e.KeyboardDevice.Modifiers == ModifierKeys.Alt)
             {
-                Hide();
+                // 处理系统 Hot Key 残留下来的 Modifier，忽略所有 Alt 开头的命令
                 e.Handled = true;
+                return;
             }
-            else if (e.KeyboardDevice.Modifiers == ModifierKeys.Alt)
+            else if ((e.KeyboardDevice.Modifiers == ModifierKeys.Control && e.Key == Key.C) || e.Key == Key.Enter)
             {
-                // TODO: 处理 Hot Key 残留下来的 Modifier，忽略所有 Alt 开头的命令
-                e.Handled = true;
+                if (ResultList.SelectedIndex != -1)
+                {
+                    var first = (ListBoxItem)ResultList.ItemContainerGenerator.ContainerFromIndex(ResultList.SelectedIndex);
+                    if (first.IsFocused)
+                    {
+                        Clipboard.SetText(first.Content.ToString());
+                        e.Handled = true;
+                    }
+                }
+                return;
+            }
+            switch (e.Key)
+            {
+                case Key.Escape:
+                    Hide();
+                    e.Handled = true;
+                    break;
+                case Key.Down:
+                    if (InputBox.IsFocused)
+                    {
+                        var first = ResultList.ItemContainerGenerator.ContainerFromIndex(0);
+                        if (first != null)
+                        {
+                            ResultList.Focus();
+                            ((ListBoxItem)first).Focus();
+                            e.Handled = true;
+                        }
+                    }
+                    break;
+                case Key.Up:
+                    if (ResultList.SelectedIndex == 0)
+                    {
+                        var first = (ListBoxItem)ResultList.ItemContainerGenerator.ContainerFromIndex(0);
+                        if (first.IsFocused)
+                        {
+                            InputBox.Focus();
+                            e.Handled = true;
+                        }
+                    }
+                    break;
             }
         }
 
@@ -86,7 +130,7 @@ namespace Toys.Client
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                this.DragMove();
+                DragMove();
             }
         }
     }

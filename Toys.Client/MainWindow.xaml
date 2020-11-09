@@ -7,43 +7,44 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
         Title="MainWindow" Width="800" ShowInTaskbar="False" WindowStyle="None" ResizeMode="NoResize"
-        SizeToContent="Height" MaxHeight="600" WindowStartupLocation="CenterScreen"
+        SizeToContent="Height" MaxHeight="494.4" WindowStartupLocation="Manual" AllowsTransparency="True" Background="Transparent"
         Deactivated="Window_Deactivated" MouseDown="Window_MouseDown">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
-        <tb:TaskbarIcon x:Name="Toys" Visibility="Visible" ToolTipText="Toys" IconSource="favicon.ico"
+
+    <Border Background="White" BorderThickness="1" CornerRadius="8">
+        <Grid Margin="8">
+            <tb:TaskbarIcon x:Name="Toys" Visibility="Visible" ToolTipText="Toys" IconSource="favicon.ico"
                         MenuActivation="RightClick" TrayMouseDoubleClick="Toys_TrayMouseDoubleClick">
-            <tb:TaskbarIcon.ContextMenu>
-                <ContextMenu>
-                    <MenuItem x:Name="YoudaoSetting" Header="有道Key设置" Click="YoudaoSetting_Click"/>
-                    <MenuItem x:Name="Exist" Header="Exit" Click="Exist_Click" />
-                </ContextMenu>
-            </tb:TaskbarIcon.ContextMenu>
-        </tb:TaskbarIcon>
-        <TextBox x:Name="InputBox" Height="45" Margin="10,14,10,0" Grid.Row="0" FontSize="18" VerticalContentAlignment="Center"
-                 Text="{Binding CurrentText, UpdateSourceTrigger=PropertyChanged, Delay=300}"></TextBox>
-        <ListBox Grid.Row="1" Margin="10,0,10,8" FontSize="16" MaxHeight="429.4"
-                 ItemsSource="{Binding ResultList}">
-            <ListBox.Style>
-                <Style TargetType="{x:Type ListBox}">
-                    <Setter Property="Visibility" Value="Visible" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding HasItems, RelativeSource={RelativeSource Self}}" Value="False">
-                            <Setter Property="Visibility" Value="Hidden" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </ListBox.Style>
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="2" Text="{Binding}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-    </Grid>
+                <tb:TaskbarIcon.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem x:Name="YoudaoSetting" Header="有道Key设置" Click="YoudaoSetting_Click"/>
+                        <MenuItem x:Name="Exist" Header="Exit" Click="Exist_Click" />
+                    </ContextMenu>
+                </tb:TaskbarIcon.ContextMenu>
+            </tb:TaskbarIcon>
+            <StackPanel Orientation="Vertical">
+                <TextBox x:Name="InputBox" Height="40" FontSize="18" VerticalContentAlignment="Center"
+                 Text="{Binding CurrentText, UpdateSourceTrigger=PropertyChanged, Delay=300}"/>
+
+                <ListBox x:Name="ResultList"  MaxHeight="429.4" FontSize="16" ItemsSource="{Binding ResultList}">
+                    <ListBox.Style>
+                        <Style TargetType="{x:Type ListBox}">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasItems, RelativeSource={RelativeSource Self}}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.Style>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0 2 0 2" Orientation="Horizontal">
+                                <TextBlock Text="{Binding}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

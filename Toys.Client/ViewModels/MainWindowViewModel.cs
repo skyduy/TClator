@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Text;
 using Toys.Client.Services;
 
 namespace Toys.Client.ViewModels
@@ -49,7 +48,7 @@ namespace Toys.Client.ViewModels
         private bool hasItems = false;
         public bool HasItems
         {
-            get { return hasItems = false; }
+            get { return hasItems; }
             set
             {
                 hasItems = value;
