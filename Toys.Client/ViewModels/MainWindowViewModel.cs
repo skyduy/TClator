@@ -4,7 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using Toys.Client.Services;
+using Toys.Client.Models;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Toys.Client.ViewModels
 {
@@ -14,6 +18,10 @@ namespace Toys.Client.ViewModels
 
         readonly ICalculateService calculator = new NaiveCalculateService();
         readonly ITranslateService translator = new YoudaoTranslateService();
+        readonly ISearchService searcher = new WindowsSearchSearvice();
+
+        static private readonly string settingFilename = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Toys", "config.json");
+        public Setting Config { get; set; } = SettingServices.Load(settingFilename);
 
         private string currentText = "";
         public string CurrentText
@@ -56,8 +64,8 @@ namespace Toys.Client.ViewModels
             }
         }
 
-        private ObservableCollection<string> resultList = new ObservableCollection<string>();
-        public ObservableCollection<string> ResultList
+        private ObservableCollection<CommonEntry> resultList = new ObservableCollection<CommonEntry>();
+        public ObservableCollection<CommonEntry> ResultList
         {
             get { return resultList; }
             set
@@ -67,19 +75,41 @@ namespace Toys.Client.ViewModels
             }
         }
 
-        public YoudaoSettingViewModel YoudaoSetting { set; get; } = new YoudaoSettingViewModel();
-
-        public DelegateCommand SendInputCMD { get; set; }
+        public DelegateCommand ChangeSettingCommand { get; set; }
+        public DelegateCommand ExitCommand { get; set; }
+        public DelegateCommand DetailCommand { get; set; }
 
         public MainWindowViewModel()
         {
-            SendInputCMD = new DelegateCommand(new Action(SendInputCMDExecute));
+            ChangeSettingCommand = new DelegateCommand(new Action(ExecChangeSetting));
+            ExitCommand = new DelegateCommand(new Action(ExecExit));
+            DetailCommand = new DelegateCommand(new Action(ExecDetail));
+        }
+
+        private void ExecChangeSetting()
+        {
+            Process fileopener = new Process();
+            fileopener.StartInfo.FileName = "explorer";
+            fileopener.StartInfo.Arguments = "\"" + settingFilename + "\"";
+            fileopener.Start();
+        }
+
+        private void ExecExit()
+        {
+            // noting todo backend.
+        }
+
+        private void ExecDetail()
+        {
+            // TODO
+            //   1. Bind
+            //   2. Exec
         }
 
         private void Query(object sender, DoWorkEventArgs e)
         {
             string content = (string)e.Argument;
-            List<string> resultList = new List<string>();
+            List<CommonEntry> resultList = new List<CommonEntry>();
             BackgroundWorker worker = sender as BackgroundWorker;
             while (!worker.CancellationPending)
             {
@@ -88,11 +118,17 @@ namespace Toys.Client.ViewModels
 
                     if (char.IsDigit(currentText[0]) || currentText[0] == '-')
                     {
-                        resultList.Add(calculator.Calculate("0" + currentText));
+                        resultList.Add(calculator.Calculate("0" + currentText, Config.CalculateConfig));
                     }
                     else
                     {
-                        foreach (string entry in translator.Translate(currentText, YoudaoSetting.Setting))
+                        foreach (SearchEntry entry in searcher.Search(currentText, Config.SearchConfig) ??
+                            Enumerable.Empty<SearchEntry>())
+                        {
+                            resultList.Add(entry);
+                        }
+
+                        foreach (TranslateEntry entry in translator.Translate(currentText, Config.TranslateConfig))
                         {
                             resultList.Add(entry);
                         }
@@ -114,16 +150,11 @@ namespace Toys.Client.ViewModels
                 return;
             }
 
-            foreach (string item in (List<string>)e.Result)
+            foreach (CommonEntry item in (List<CommonEntry>)e.Result)
             {
                 ResultList.Add(item);
             }
             HasItems = ResultList.Count > 0;
-        }
-
-        private void SendInputCMDExecute()
-        {
-
         }
     }
 }

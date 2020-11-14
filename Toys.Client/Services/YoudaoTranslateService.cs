@@ -12,10 +12,12 @@ namespace Toys.Client.Services
 {
     class YoudaoTranslateService : ITranslateService
     {
-        private readonly LRUCache<string, List<string>> cache = new LRUCache<string, List<string>>(1024);
+        private readonly LRUCache<string, List<TranslateEntry>> cache = new LRUCache<string, List<TranslateEntry>>(1024);
 
-        private string FetchYoudao(string q, YoudaoSetting s)
+        private static string FetchYoudao(string q, TranslateSetting setting)
         {
+            string key = setting.YoudaoAppKey;
+            string secret = setting.YoudaoAppSecret;
             // construct params
             Dictionary<String, String> paramsDict = new Dictionary<String, String>();
             string salt = DateTime.Now.Millisecond.ToString();
@@ -26,10 +28,10 @@ namespace Toys.Client.Services
             long millis = (long)ts.TotalMilliseconds;
             string curtime = Convert.ToString(millis / 1000);
             paramsDict.Add("curtime", curtime);
-            string signStr = s.AppKey + truncate(q) + salt + curtime + s.AppSecret; ;
+            string signStr = key + truncate(q) + salt + curtime + secret;
             string sign = computeHash(signStr, new SHA256CryptoServiceProvider());
             paramsDict.Add("q", Uri.EscapeUriString(q));
-            paramsDict.Add("appKey", s.AppKey);
+            paramsDict.Add("appKey", key);
             paramsDict.Add("salt", salt);
             paramsDict.Add("sign", sign);
 
@@ -43,7 +45,7 @@ namespace Toys.Client.Services
             foreach (var item in paramsDict)
             {
                 if (i > 0)
-                    builder.Append("&");
+                    builder.Append('&');
                 builder.AppendFormat("{0}={1}", item.Key, item.Value);
                 i++;
             }
@@ -87,25 +89,27 @@ namespace Toys.Client.Services
             }
         }
 
-        public List<string> Translate(string src, object options)
+        public List<TranslateEntry> Translate(string src, TranslateSetting setting)
         {
+            if (!setting.Enable) return default;
+
             // query cache
-            List<string> answers = cache.Get(src);
+            List<TranslateEntry> answers = cache.Get(src);
             if (answers != null)
             {
                 return answers;
             }
-            answers = new List<string>();
+            answers = new List<TranslateEntry>();
 
             // fetch data
             string data;
             try
             {
-                data = FetchYoudao(src, (YoudaoSetting)options);
+                data = FetchYoudao(src, setting);
             }
             catch (Exception e)
             {
-                answers.Add("[请求超时]" + e.Message);
+                answers.Add(new TranslateEntry("[请求超时]" + e.Message));
                 return answers;
             }
             if (data == string.Empty)
@@ -126,10 +130,10 @@ namespace Toys.Client.Services
                     }
                     var translations = o.Translation.ToArray();
                     string first = phonetic + translations[0];
-                    answers.Add(first);
+                    answers.Add(new TranslateEntry(first));
                     for (int i = 1; i < translations.Length; i++)
                     {
-                        answers.Add(translations[i]);
+                        answers.Add(new TranslateEntry(translations[i]));
                     }
                 }
 
@@ -137,7 +141,7 @@ namespace Toys.Client.Services
                 {
                     foreach (string item in o.Basic.Explains.ToArray())
                     {
-                        answers.Add(item);
+                        answers.Add(new TranslateEntry(item));
                     }
                 }
 
@@ -147,7 +151,7 @@ namespace Toys.Client.Services
                     {
                         if (t.Key != src)
                         {
-                            answers.Add(t.Key + ": " + string.Join(" | ", t.Value.ToArray()));
+                            answers.Add(new TranslateEntry(t.Key + ": " + string.Join(" | ", t.Value.ToArray())));
                         }
                     }
                 }
@@ -157,11 +161,11 @@ namespace Toys.Client.Services
             {
                 string error = o.ErrorCode switch
                 {
-                    108 => "[有道智云] 应用ID不正确（请右击托盘图标设置）",
-                    202 => "[有道智云] 签名检验失败（请右击托盘图标设置）",
+                    108 => "[有道智云] 应用ID不正确",
+                    202 => "[有道智云] 签名检验失败",
                     _ => "[有道智云] 错误代码" + o.ErrorCode,
                 };
-                answers.Add(error);
+                answers.Add(new TranslateEntry(error));
             }
             return answers;
         }

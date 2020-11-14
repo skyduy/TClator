@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using Toys.Client.Models;
 
 namespace Toys.Client.Services
 {
@@ -9,16 +10,18 @@ namespace Toys.Client.Services
     {
         private readonly Regex inputValidator = new Regex("^([0-9]|[x\\+\\-\\/\\(\\)\\*\\^\\.\\s])*$");
 
-        public string Calculate(string question)
+        public CalculateEntry Calculate(string question, CalculateSetting setting)
         {
-            string answer = "";
-            question = this.Preprocess(question);
+            if (!setting.Enable) return default;
+
+            CalculateEntry answer = new CalculateEntry();
+            question = Preprocess(question);
             if (question != string.Empty)
             {
-                question = this.ConvertInfixToPostfix(question);
+                question = ConvertInfixToPostfix(question);
                 try
                 {
-                    answer = this.EvaluatePostfixExpression(question).ToString();
+                    answer.Display = EvaluatePostfixExpression(question).ToString();
                 }
                 catch (Exception)
                 {

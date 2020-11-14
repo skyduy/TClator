@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Input;
 using Toys.Client.ViewModels;
-using Toys.Client.Views;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -111,14 +110,14 @@ namespace Toys.Client
             Activate();
         }
 
-        private void YoudaoSetting_Click(object sender, RoutedEventArgs e)
-        {
-            YoudaoSettingView window = new YoudaoSettingView(this.DataContext);
-            window.ShowDialog();
-        }
-
         private void Exist_Click(object sender, RoutedEventArgs e)
         {
+            var viewModel = (MainWindowViewModel)DataContext;
+            if (viewModel.ExitCommand.CanExecute())
+            {
+                viewModel.ExitCommand.Execute();
+            }
+
             foreach (var item in Hotkeys)
             {
                 item.Unregister();

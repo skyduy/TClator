@@ -1,7 +1,9 @@
-﻿namespace Toys.Client.Services
+﻿using Toys.Client.Models;
+
+namespace Toys.Client.Services
 {
     interface ICalculateService
     {
-        string Calculate(string question);
+        CalculateEntry Calculate(string question, CalculateSetting setting);
     }
 }

@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using Toys.Client.Models;
 
 namespace Toys.Client.Services
 {
     interface ITranslateService
     {
-        List<string> Translate(string src, object options);
+        List<TranslateEntry> Translate(string src, TranslateSetting setting);
     }
 }

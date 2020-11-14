@@ -16,7 +16,7 @@
                         MenuActivation="RightClick" TrayMouseDoubleClick="Toys_TrayMouseDoubleClick">
                 <tb:TaskbarIcon.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="YoudaoSetting" Header="有道Key设置" Click="YoudaoSetting_Click"/>
+                        <MenuItem x:Name="YoudaoSetting" Header="设置" Command="{Binding ChangeSettingCommand}"/>
                         <MenuItem x:Name="Exist" Header="Exit" Click="Exist_Click" />
                     </ContextMenu>
                 </tb:TaskbarIcon.ContextMenu>
@@ -39,7 +39,7 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="0 2 0 2" Orientation="Horizontal">
-                                <TextBlock Text="{Binding}" />
+                                <TextBlock Text="{Binding Display}" />
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
