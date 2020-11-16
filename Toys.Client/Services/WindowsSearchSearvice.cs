@@ -43,9 +43,18 @@ namespace Toys.Client.Services
                 {
                     string fn = r[0].ToString();
                     string url = r[1].ToString();
-                    if (!fn.Contains("卸载"))
+                    if (fn.Contains("卸载") || fn.Contains("Uninstall") || !url.StartsWith("file:")) continue;
+
+                    string linkPathName = url.ToString()[5..];
+                    if (System.IO.File.Exists(linkPathName))
                     {
-                        res.Add(new SearchEntry(fn, url));
+                        WshShell shell = new WshShell(); //Create a new WshShell Interface
+                        IWshShortcut link = (IWshShortcut)shell.CreateShortcut(linkPathName); //Link the interface to our shortcut
+                        string realUrl = link.TargetPath;
+                        if (!realUrl.StartsWith("C:\\Windows"))
+                        {
+                            res.Add(new SearchEntry(fn, realUrl));
+                        }
                     }
                 }
                 return res;
@@ -63,17 +72,7 @@ namespace Toys.Client.Services
 
         public bool Open(SearchEntry entry)
         {
-            if (entry.Url.StartsWith("file:"))
-            {
-                string linkPathName = entry.Url.ToString()[5..];
-                if (System.IO.File.Exists(linkPathName))
-                {
-                    // WshShellClass shell = new WshShellClass();
-                    WshShell shell = new WshShell(); //Create a new WshShell Interface
-                    IWshShortcut link = (IWshShortcut)shell.CreateShortcut(linkPathName); //Link the interface to our shortcut
-                    Process.Start(link.TargetPath);
-                }
-            }
+            Process.Start(entry.Url);
             return false;
         }
     }

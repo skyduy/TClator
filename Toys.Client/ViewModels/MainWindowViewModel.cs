@@ -7,8 +7,10 @@ using System.ComponentModel;
 using System.IO;
 using Toys.Client.Services;
 using Toys.Client.Models;
+using Toys.Client.Views;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows;
 
 namespace Toys.Client.ViewModels
 {
@@ -53,17 +55,6 @@ namespace Toys.Client.ViewModels
             }
         }
 
-        private bool hasItems = false;
-        public bool HasItems
-        {
-            get { return hasItems; }
-            set
-            {
-                hasItems = value;
-                this.RaisePropertyChanged(nameof(HasItems));
-            }
-        }
-
         private ObservableCollection<CommonEntry> resultList = new ObservableCollection<CommonEntry>();
         public ObservableCollection<CommonEntry> ResultList
         {
@@ -77,13 +68,13 @@ namespace Toys.Client.ViewModels
 
         public DelegateCommand ChangeSettingCommand { get; set; }
         public DelegateCommand ExitCommand { get; set; }
-        public DelegateCommand DetailCommand { get; set; }
+        public DelegateCommand<CommonEntry> DetailCommand { get; set; }
 
         public MainWindowViewModel()
         {
             ChangeSettingCommand = new DelegateCommand(new Action(ExecChangeSetting));
             ExitCommand = new DelegateCommand(new Action(ExecExit));
-            DetailCommand = new DelegateCommand(new Action(ExecDetail));
+            DetailCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecDetail));
         }
 
         private void ExecChangeSetting()
@@ -96,14 +87,25 @@ namespace Toys.Client.ViewModels
 
         private void ExecExit()
         {
-            // noting todo backend.
+            Debug.Print("Exit");
         }
 
-        private void ExecDetail()
+        private void ExecDetail(CommonEntry entry)
         {
-            // TODO
-            //   1. Bind
-            //   2. Exec
+            Debug.Print(entry.Type);
+            if (entry.Type == nameof(CalculateEntry))
+            {
+                Clipboard.SetText(entry.Display);
+            }
+            else if (entry.Type == nameof(TranslateEntry))
+            {
+                ResultDetailView window = new ResultDetailView(currentText.Trim(), entry.Display);
+                window.ShowDialog();
+            }
+            else if (entry.Type == nameof(SearchEntry))
+            {
+                searcher.Open((SearchEntry)entry);
+            }
         }
 
         private void Query(object sender, DoWorkEventArgs e)
@@ -154,7 +156,6 @@ namespace Toys.Client.ViewModels
             {
                 ResultList.Add(item);
             }
-            HasItems = ResultList.Count > 0;
         }
     }
 }

@@ -59,7 +59,7 @@ namespace Toys.Client
                 e.Handled = true;
                 return;
             }
-            else if ((e.KeyboardDevice.Modifiers == ModifierKeys.Control && e.Key == Key.C) || e.Key == Key.Enter)
+            else if (e.KeyboardDevice.Modifiers == ModifierKeys.Control && e.Key == Key.C)
             {
                 if (ResultList.SelectedIndex != -1)
                 {
@@ -108,6 +108,15 @@ namespace Toys.Client
         {
             Show();
             Activate();
+        }
+
+        private void Setting_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = (MainWindowViewModel)DataContext;
+            if (viewModel.ChangeSettingCommand.CanExecute())
+            {
+                viewModel.ChangeSettingCommand.Execute();
+            }
         }
 
         private void Exist_Click(object sender, RoutedEventArgs e)
