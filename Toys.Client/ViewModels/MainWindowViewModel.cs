@@ -124,20 +124,25 @@ namespace Toys.Client.ViewModels
             {
                 if (content != string.Empty)
                 {
-
-                    if (char.IsDigit(currentText[0]) || currentText[0] == '-')
+                    if ("0123456789-.(（".Contains(content[0]))
                     {
-                        resultList.Add(calculator.Calculate("0" + currentText, Config.CalculateConfig));
+                        if (content[0] == '.')
+                        {
+                            content = "0" + content;
+                        }
+                        content = content.Replace('（', '(').Replace('）', ')').Replace('、', '/');
+                        content = content.Replace("**", "^").Replace("<<", "*2^");
+                        resultList.Add(calculator.Calculate(content, Config.CalculateConfig));
                     }
                     else
                     {
-                        foreach (SearchEntry entry in searcher.Search(currentText, Config.SearchConfig) ??
+                        foreach (SearchEntry entry in searcher.Search(content, Config.SearchConfig) ??
                             Enumerable.Empty<SearchEntry>())
                         {
                             resultList.Add(entry);
                         }
 
-                        foreach (TranslateEntry entry in translator.Translate(currentText, Config.TranslateConfig))
+                        foreach (TranslateEntry entry in translator.Translate(content, Config.TranslateConfig))
                         {
                             resultList.Add(entry);
                         }

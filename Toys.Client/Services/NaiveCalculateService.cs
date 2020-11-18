@@ -18,9 +18,9 @@ namespace Toys.Client.Services
             question = Preprocess(question);
             if (question != string.Empty)
             {
-                question = ConvertInfixToPostfix(question);
                 try
                 {
+                    question = ConvertInfixToPostfix(question);
                     answer.Display = EvaluatePostfixExpression(question).ToString();
                 }
                 catch (Exception)
