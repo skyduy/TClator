@@ -130,7 +130,8 @@ namespace Toys.Client.ViewModels
                         {
                             content = "0" + content;
                         }
-                        content = content.Replace('（', '(').Replace('）', ')').Replace('、', '/');
+                        content = content.Replace('（', '(').Replace('）', ')');
+                        content = content.Replace('、', '/').Replace('《', '<');
                         content = content.Replace("**", "^").Replace("<<", "*2^");
                         resultList.Add(calculator.Calculate(content, Config.CalculateConfig));
                     }
