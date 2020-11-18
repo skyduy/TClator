@@ -8,11 +8,17 @@ namespace Toys.Client.Services
 {
     class NaiveCalculateService : ICalculateService
     {
+        private bool Enable { get; set; }
         private readonly Regex inputValidator = new Regex("^([0-9]|[x\\+\\-\\/\\(\\)\\*\\^\\.\\s])*$");
 
-        public CalculateEntry Calculate(string question, CalculateSetting setting)
+        public NaiveCalculateService(CalculateSetting setting)
         {
-            if (!setting.Enable) return default;
+            Enable = setting.Enable;
+        }
+
+        public CalculateEntry Calculate(string question)
+        {
+            if (!Enable) return default;
 
             CalculateEntry answer = new CalculateEntry();
             question = Preprocess(question);

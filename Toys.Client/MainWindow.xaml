@@ -25,8 +25,7 @@
                 <TextBox x:Name="InputBox" Height="40" FontSize="18" VerticalContentAlignment="Center"
                          Text="{Binding CurrentText, UpdateSourceTrigger=PropertyChanged, Delay=300}"/>
 
-                <ListBox x:Name="ResultList"  MaxHeight="429.4" FontSize="16" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         ItemsSource="{Binding ResultList}">
+                <ListBox x:Name="ResultList"  MaxHeight="429.4" FontSize="16" ItemsSource="{Binding ResultList}">
                     <ListBox.Style>
                         <Style TargetType="ListBox">
                             <Style.Triggers>

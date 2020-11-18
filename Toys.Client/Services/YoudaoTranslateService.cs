@@ -12,12 +12,13 @@ namespace Toys.Client.Services
 {
     class YoudaoTranslateService : ITranslateService
     {
+        private readonly TranslateSetting Setting;
         private readonly LRUCache<string, List<TranslateEntry>> cache = new LRUCache<string, List<TranslateEntry>>(1024);
 
-        private static string FetchYoudao(string q, TranslateSetting setting)
+        private string FetchYoudao(string q)
         {
-            string key = setting.YoudaoAppKey;
-            string secret = setting.YoudaoAppSecret;
+            string key = Setting.YoudaoAppKey;
+            string secret = Setting.YoudaoAppSecret;
             // construct params
             Dictionary<String, String> paramsDict = new Dictionary<String, String>();
             string salt = DateTime.Now.Millisecond.ToString();
@@ -89,9 +90,14 @@ namespace Toys.Client.Services
             }
         }
 
-        public List<TranslateEntry> Translate(string src, TranslateSetting setting)
+        public YoudaoTranslateService(TranslateSetting setting)
         {
-            if (!setting.Enable) return default;
+            Setting = setting;
+        }
+
+        public List<TranslateEntry> Translate(string src)
+        {
+            if (!Setting.Enable) return default;
 
             // query cache
             List<TranslateEntry> answers = cache.Get(src);
@@ -105,7 +111,7 @@ namespace Toys.Client.Services
             string data;
             try
             {
-                data = FetchYoudao(src, setting);
+                data = FetchYoudao(src);
             }
             catch (Exception e)
             {

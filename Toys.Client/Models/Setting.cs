@@ -19,6 +19,7 @@ namespace Toys.Client.Models
     class SearchSetting : CommonSetting
     {
         public List<string> SearchPaths { get; set; } = new List<string>();
+        public List<string> Extensions { get; set; } = new List<string>();
     }
 
     class TranslateSetting : CommonSetting

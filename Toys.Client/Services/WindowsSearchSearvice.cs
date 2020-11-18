@@ -9,18 +9,26 @@ namespace Toys.Client.Services
 {
     class WindowsSearchSearvice : ISearchService
     {
-        readonly OleDbConnection conn = new OleDbConnection(@"Provider=Search.CollatorDSO;Extended Properties=""Application=Windows""");
-        public WindowsSearchSearvice()
+        private readonly List<SearchEntry> Programs = new List<SearchEntry>();
+
+        public WindowsSearchSearvice(SearchSetting setting)
         {
             if (!OperatingSystem.IsWindows())
             {
                 throw new PlatformNotSupportedException();
             }
-        }
 
-        public List<SearchEntry> Search(string keyword, SearchSetting setting)
-        {
-            if (!setting.Enable || setting.SearchPaths.Count == 0) return default;
+            if (!setting.Enable || setting.SearchPaths.Count == 0) return;
+
+            List<string> extensions = null;
+            if (!setting.Extensions.Contains("*") && setting.Extensions.Count != 0)
+            {
+                extensions = new List<string>();
+                foreach (string s in setting.Extensions)
+                {
+                    extensions.Add(s.ToLower());
+                }
+            }
 
             List<string> scopesList = new List<string>();
             foreach (string fn in setting.SearchPaths)
@@ -29,40 +37,45 @@ namespace Toys.Client.Services
             }
             string scopesCondition = "(" + string.Join(" OR ", scopesList) + ")";
             string query = string.Format(
-                @"SELECT System.ItemNameDisplayWithoutExtension, System.ItemUrl FROM SystemIndex " +
-                @"WHERE {0} AND System.ItemType != 'Directory' AND System.ItemNameDisplayWithoutExtension LIKE '%{1}%'",
-                scopesCondition, keyword);
+                @"SELECT System.ItemNameDisplayWithoutExtension, System.ItemUrl FROM SystemIndex WHERE {0} AND System.ItemType != 'Directory'",
+                scopesCondition);
 
+            OleDbConnection conn = new OleDbConnection(@"Provider=Search.CollatorDSO;Extended Properties=""Application=Windows""");
             OleDbCommand command = new OleDbCommand(query, conn);
+            WshShell shell = new WshShell();
             try
             {
                 conn.Open();
                 var r = command.ExecuteReader();
-                List<SearchEntry> res = new List<SearchEntry>();
                 while (r.Read())
                 {
                     string fn = r[0].ToString();
                     string url = r[1].ToString();
-                    if (fn.Contains("卸载") || fn.Contains("Uninstall") || !url.StartsWith("file:")) continue;
+                    string path = url[5..];
+                    if (fn.Contains("卸载") || fn.Contains("Uninstall") || !url.StartsWith("file:") || !System.IO.File.Exists(path)) continue;
 
-                    string linkPathName = url.ToString()[5..];
-                    if (System.IO.File.Exists(linkPathName))
+                    if (path.EndsWith(".lnk"))
                     {
-                        WshShell shell = new WshShell(); //Create a new WshShell Interface
-                        IWshShortcut link = (IWshShortcut)shell.CreateShortcut(linkPathName); //Link the interface to our shortcut
-                        string realUrl = link.TargetPath;
-                        if (!realUrl.StartsWith("C:\\Windows"))
-                        {
-                            res.Add(new SearchEntry(fn, realUrl));
-                        }
+                        path = ((IWshShortcut)shell.CreateShortcut(path)).TargetPath;
+                        if (!System.IO.File.Exists(path)) continue;
+                    }
+
+                    string extension = path;
+                    int idx = path.LastIndexOf('.');
+                    if (idx != -1)
+                    {
+                        extension = path[(idx + 1)..];
+                    }
+
+                    if (extensions == null || extensions.Contains(extension.ToLower()))
+                    {
+                        Programs.Add(new SearchEntry(fn, extension, path.Replace('/', '\\')));
                     }
                 }
-                return res;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                return default;
+                Debug.Print(ex.Message);
             }
             finally
             {
@@ -70,9 +83,26 @@ namespace Toys.Client.Services
             }
         }
 
+        public List<SearchEntry> Search(string keyword)
+        {
+            keyword = keyword.ToLower();
+            List<SearchEntry> res = new List<SearchEntry>();
+            foreach (SearchEntry entry in Programs)
+            {
+                if (entry.Match.Contains(keyword))
+                {
+                    res.Add(entry);
+                }
+            }
+            return res;
+        }
+
         public bool Open(SearchEntry entry)
         {
-            Process.Start(entry.Url);
+            Process fileopener = new Process();
+            fileopener.StartInfo.FileName = "explorer";
+            fileopener.StartInfo.Arguments = "\"" + entry.Url + "\"";
+            fileopener.Start();
             return false;
         }
     }

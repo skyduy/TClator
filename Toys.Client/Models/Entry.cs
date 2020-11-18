@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,12 +33,15 @@ namespace Toys.Client.Models
 
     class SearchEntry : CommonEntry
     {
+        public string Match { get; set; } = "";
         public string Url { get; set; } = "";
 
         public SearchEntry() { }
-        public SearchEntry(string display, string url)
+        public SearchEntry(string fn, string extension, string url)
         {
-            Display = "[APP] " + display;
+            Match = (fn + " " + Path.GetFileNameWithoutExtension(url)).ToLower();
+
+            Display = "[" + extension.ToUpper() + "] " + fn;
             Url = url;
         }
     }

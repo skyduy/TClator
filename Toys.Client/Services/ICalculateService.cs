@@ -4,6 +4,6 @@ namespace Toys.Client.Services
 {
     interface ICalculateService
     {
-        CalculateEntry Calculate(string question, CalculateSetting setting);
+        CalculateEntry Calculate(string question);
     }
 }

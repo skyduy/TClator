@@ -18,12 +18,13 @@ namespace Toys.Client.ViewModels
     {
         private BackgroundWorker bgw;
 
-        readonly ICalculateService calculator = new NaiveCalculateService();
-        readonly ITranslateService translator = new YoudaoTranslateService();
-        readonly ISearchService searcher = new WindowsSearchSearvice();
-
         static private readonly string settingFilename = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Toys", "config.json");
         public Setting Config { get; set; } = SettingServices.Load(settingFilename);
+
+        readonly ICalculateService calculator;
+        readonly ITranslateService translator;
+        readonly ISearchService searcher;
+
 
         private string currentText = "";
         public string CurrentText
@@ -73,6 +74,13 @@ namespace Toys.Client.ViewModels
 
         public MainWindowViewModel()
         {
+            calculator = new NaiveCalculateService(Config.CalculateConfig);
+            translator = new YoudaoTranslateService(Config.TranslateConfig);
+            if (OperatingSystem.IsWindows())
+            {
+                searcher = new WindowsSearchSearvice(Config.SearchConfig);
+            }
+
             ChangeSettingCommand = new DelegateCommand(new Action(ExecChangeSetting));
             ExitCommand = new DelegateCommand(new Action(ExecExit));
             CopyCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecCopy));
@@ -124,6 +132,18 @@ namespace Toys.Client.ViewModels
             {
                 if (content != string.Empty)
                 {
+                    if (searcher != null)
+                    {
+                        List<SearchEntry> res = searcher.Search(content);
+                        if (res != null)
+                        {
+                            foreach (SearchEntry entry in res)
+                            {
+                                Debug.Print(entry.Url);
+                                resultList.Add(entry);
+                            }
+                        }
+                    }
                     if ("0123456789-.(（".Contains(content[0]))
                     {
                         if (content[0] == '.')
@@ -133,17 +153,11 @@ namespace Toys.Client.ViewModels
                         content = content.Replace('（', '(').Replace('）', ')');
                         content = content.Replace('、', '/').Replace('《', '<');
                         content = content.Replace("**", "^").Replace("<<", "*2^");
-                        resultList.Add(calculator.Calculate(content, Config.CalculateConfig));
+                        resultList.Add(calculator.Calculate(content));
                     }
                     else
                     {
-                        foreach (SearchEntry entry in searcher.Search(content, Config.SearchConfig) ??
-                            Enumerable.Empty<SearchEntry>())
-                        {
-                            resultList.Add(entry);
-                        }
-
-                        foreach (TranslateEntry entry in translator.Translate(content, Config.TranslateConfig))
+                        foreach (TranslateEntry entry in translator.Translate(content))
                         {
                             resultList.Add(entry);
                         }

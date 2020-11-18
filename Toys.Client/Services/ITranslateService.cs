@@ -5,6 +5,6 @@ namespace Toys.Client.Services
 {
     interface ITranslateService
     {
-        List<TranslateEntry> Translate(string src, TranslateSetting setting);
+        List<TranslateEntry> Translate(string src);
     }
 }
