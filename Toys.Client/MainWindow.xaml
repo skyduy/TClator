@@ -46,6 +46,8 @@
                     <ListBox.InputBindings>
                         <KeyBinding Key="Enter" Command="{Binding DetailCommand}" 
                                     CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"/>
+                        <KeyBinding Key="C" Modifiers="Control" Command="{Binding CopyCommand}" 
+                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}" />
                     </ListBox.InputBindings>
                     <ListBox.ItemTemplate>
                         <DataTemplate>

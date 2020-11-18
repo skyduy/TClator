@@ -68,12 +68,14 @@ namespace Toys.Client.ViewModels
 
         public DelegateCommand ChangeSettingCommand { get; set; }
         public DelegateCommand ExitCommand { get; set; }
+        public DelegateCommand<CommonEntry> CopyCommand { get; set; }
         public DelegateCommand<CommonEntry> DetailCommand { get; set; }
 
         public MainWindowViewModel()
         {
             ChangeSettingCommand = new DelegateCommand(new Action(ExecChangeSetting));
             ExitCommand = new DelegateCommand(new Action(ExecExit));
+            CopyCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecCopy));
             DetailCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecDetail));
         }
 
@@ -88,6 +90,11 @@ namespace Toys.Client.ViewModels
         private void ExecExit()
         {
             Debug.Print("Exit");
+        }
+
+        private void ExecCopy(CommonEntry entry)
+        {
+            Clipboard.SetText(entry.Display);
         }
 
         private void ExecDetail(CommonEntry entry)

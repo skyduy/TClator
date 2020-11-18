@@ -59,19 +59,7 @@ namespace Toys.Client
                 e.Handled = true;
                 return;
             }
-            else if (e.KeyboardDevice.Modifiers == ModifierKeys.Control && e.Key == Key.C)
-            {
-                if (ResultList.SelectedIndex != -1)
-                {
-                    var first = (ListBoxItem)ResultList.ItemContainerGenerator.ContainerFromIndex(ResultList.SelectedIndex);
-                    if (first.IsFocused)
-                    {
-                        Clipboard.SetText(first.Content.ToString());
-                        e.Handled = true;
-                    }
-                }
-                return;
-            }
+
             switch (e.Key)
             {
                 case Key.Escape:
