@@ -85,11 +85,20 @@ namespace Toys.Client.Services
 
         public List<SearchEntry> Search(string keyword)
         {
-            keyword = keyword.ToLower();
+            string[] words = keyword.ToLower().Split(' ');
             List<SearchEntry> res = new List<SearchEntry>();
             foreach (SearchEntry entry in Programs)
             {
-                if (entry.Match.Contains(keyword))
+                bool contain = true;
+                foreach (string word in words)
+                {
+                    if (!entry.Match.Contains(word))
+                    {
+                        contain = false;
+                        break;
+                    }
+                }
+                if (contain)
                 {
                     res.Add(entry);
                 }
