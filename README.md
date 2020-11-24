@@ -5,6 +5,8 @@ Translator / Calculator / Launcher / File Searcher
 ### TODOs
 
 - [ ] 依赖：摆脱对 Windows Index 的依赖
+- [ ] 文件搜索树设置深度
+- [ ] 文件搜索支持文件夹名字搜索
 - [ ]  索引异步更新
 - [ ] 后台实时更新索引
 - [ ] User privacy：不显示用户设置为隐藏属性的文件
