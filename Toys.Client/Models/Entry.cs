@@ -39,8 +39,7 @@ namespace Toys.Client.Models
         public SearchEntry() { }
         public SearchEntry(string fn, string extension, string url)
         {
-            Match = (fn + " " + Path.GetFileNameWithoutExtension(url)).ToLower();
-
+            Match = (fn + " " + Path.GetFileNameWithoutExtension(url) + " " + extension).ToLower();
             Display = "[" + extension.ToUpper() + "] " + fn;
             Url = url;
         }
