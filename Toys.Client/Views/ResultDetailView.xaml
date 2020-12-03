@@ -5,27 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Toys.Client.Views"
         mc:Ignorable="d"  
-        Icon="../favicon.ico" Title="Detail" WindowStartupLocation="Manual" ResizeMode="NoResize" 
-        Width="800" SizeToContent="Height" MaxHeight="494.4">
+        WindowStyle="None" Title="Detail" WindowStartupLocation="Manual" ResizeMode="NoResize" 
+        Width="800" SizeToContent="Height" MaxHeight="800" MouseDown="Window_MouseDown">
 
-    <Grid Margin="16 8 16 16">
+    <Grid Margin="16">
         <StackPanel Orientation="Vertical"  HorizontalAlignment="Center">
-            <RichTextBox FontSize="16" IsReadOnly="True" VerticalContentAlignment="Center">
-                <FlowDocument>
-                    <Paragraph Margin="2">
-                        <Run Text="{Binding Src}"/>
-                    </Paragraph>
-                </FlowDocument>
-            </RichTextBox>
+            <TextBox FontSize="16" TextWrapping="Wrap" MaxHeight="300" VerticalContentAlignment="Center" 
+                     Text="{Binding Src}" IsReadOnly="True"/>
 
-            <RichTextBox x:Name="ResultBox" Margin="0 8 0 0" FontSize="16" VerticalContentAlignment="Center">
-                <FlowDocument>
-                    <Paragraph Margin="2">
-                        <Run Text="{Binding Dst}"/>
-                    </Paragraph>
-                </FlowDocument>
-            </RichTextBox>
-
+            <TextBox x:Name="ResultBox" MaxHeight="390" Margin="0 8 0 0" FontSize="18" VerticalContentAlignment="Center"
+                     Text="{Binding Dst}" AcceptsReturn="True" TextWrapping="Wrap"/>
         </StackPanel>
     </Grid>
 </Window>

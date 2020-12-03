@@ -26,6 +26,14 @@ namespace Toys.Client.Views
             if (e.Key == Key.Escape)
                 Close();
         }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                DragMove();
+            }
+        }
     }
 
     class MiniResultDetailViewModel

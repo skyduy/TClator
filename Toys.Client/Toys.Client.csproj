@@ -10,6 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\calculator.ico" />
+    <None Remove="Assets\youdao.ico" />
     <None Remove="favicon.ico" />
   </ItemGroup>
 
@@ -32,6 +34,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Assets\calculator.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\youdao.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Resource Include="favicon.ico" />
   </ItemGroup>
 

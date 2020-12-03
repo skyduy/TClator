@@ -4,6 +4,7 @@ Translator / Calculator / Launcher / File Searcher
 
 ### TODOs
 
+- [x] 搜索结果添加图标
 - [ ] 依赖：摆脱对 Windows Index 的依赖
 - [ ] 文件搜索树设置深度
 - [ ] 文件搜索支持文件夹名字搜索

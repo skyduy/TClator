@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
+using System.Windows.Media.Imaging;
 
 namespace Toys.Client.Models
 {
     class CommonEntry
     {
         public string Type => GetType().Name;
+        public BitmapSource ImageData { get; set; }
         public string Display { get; set; } = "";
     }
 
@@ -40,7 +37,7 @@ namespace Toys.Client.Models
         public SearchEntry(string fn, string extension, string url)
         {
             Match = (fn + " " + Path.GetFileNameWithoutExtension(url) + " " + extension).ToLower();
-            Display = "[" + extension.ToUpper() + "] " + fn;
+            Display = fn;
             Url = url;
         }
     }
