@@ -2,7 +2,14 @@
 
 Translator / Calculator / Launcher / File Searcher
 
-### TODOs
+## Demonstrate
+
+![demo1](docs/img/demo1.png)
+![demo2](docs/img/demo2.png)
+![demo3](docs/img/demo3.png)
+![demo4](docs/img/demo4.png)
+
+## TODOs
 
 - [x] 搜索结果添加图标
 - [ ] 依赖：摆脱对 Windows Index 的依赖
