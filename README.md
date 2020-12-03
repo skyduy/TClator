@@ -1,28 +1,19 @@
-# toys (TClator)
+# Toys V2.0
 
-Mini **T**rans**lator** and **C**alcu**lator** on Windows.
+Translator / Calculator / Launcher / File Searcher
 
-Inspired by [Wox](https://github.com/Wox-launcher/Wox), but it has some redundant function and takes up too much memory.
-## Install
+### TODOs
 
-Go to [Release Page](https://github.com/skyduy/TClator/releases) to download portable exe.
-
-## Using
-
-ShortKey: `ALT+Q`
-
-### Caculator
-![Caculator](https://github.com/skyduy/TClator/blob/master/doc/images/calc.jpg)
-
-### Translator
-- Setting appKey and appSecret from [有道智云](http://ai.youdao.com/fanyi-services.s?null)
-
-![Setting](https://github.com/skyduy/TClator/blob/master/doc/images/setting.jpg)
-
-- And try it!
-
-![中文到英文翻译](https://github.com/skyduy/TClator/blob/master/doc/images/zh2en.jpg)
-
-![English to Chinese](https://github.com/skyduy/TClator/blob/master/doc/images/en2zh.jpg)
-
-![detail](https://github.com/skyduy/TClator/blob/master/doc/images/detail.jpg)
+- [ ] 依赖：摆脱对 Windows Index 的依赖
+- [ ] 文件搜索树设置深度
+- [ ] 文件搜索支持文件夹名字搜索
+- [ ]  索引异步更新
+- [ ] 后台实时更新索引
+- [ ] User privacy：不显示用户设置为隐藏属性的文件
+- [ ] 取消搜索 . 开头的文件（除非搜索框含有 . ）
+- [ ] 设置保存后，不用重新加载程序
+- [ ] ListBox Item 响应双击打开
+- [ ] ListBox Item 不同结果响应右键菜单，不同结果响应不同菜单
+- [ ] ListBox Item 结果美化
+- [ ] 主动 GC
+- [ ] 内存优化、性能优化
