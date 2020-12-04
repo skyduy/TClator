@@ -2,6 +2,12 @@
 
 Translator / Calculator / Launcher / File Searcher
 
+## Download
+[https://github.com/skyduy/toys/releases](https://github.com/skyduy/toys/releases)
+
+## Usage
+`Alt+Space`
+
 ## Demonstrate
 
 ![demo1](docs/img/demo1.png)
@@ -23,3 +29,5 @@ Translator / Calculator / Launcher / File Searcher
 - [x] ListBox Item 结果美化
 - [ ] 主动 GC
 - [ ] 内存优化、性能优化
+- [ ] ListBox Item 记录最近最常使用
+- [ ] ListBox Item 惰性加载及其显示策略
