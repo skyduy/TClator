@@ -54,7 +54,7 @@ namespace Toys.Client
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
-            //Hide();
+            Hide();
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
