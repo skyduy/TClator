@@ -27,7 +27,10 @@ namespace Toys.Client.ViewModels
         readonly ITranslateService translator;
         readonly ISearchService searcher;
 
+        // viewmodels
+        public TranslateResultDetailViewModel DetailViewModel { get; } = new TranslateResultDetailViewModel();
 
+        // binding data
         private string currentText = "";
         public string CurrentText
         {
@@ -69,11 +72,19 @@ namespace Toys.Client.ViewModels
             }
         }
 
+        // binding command
         public DelegateCommand ChangeSettingCommand { get; set; }
         public DelegateCommand ExitCommand { get; set; }
         public DelegateCommand<CommonEntry> CopyCommand { get; set; }
-        public DelegateCommand<CommonEntry> DetailCommand { get; set; }
+        public DelegateCommand<CommonEntry> DefaultActionCommand { get; set; }
+        public DelegateCommand ActivateCommand { get; set; }
+        public DelegateCommand<EntryAction> ActionCommand { get; set; }
 
+        // manual delegate 
+        public Action ShowDetailAction { get; set; }
+        public Action ActivateMainWindowAction { get; set; }
+
+        // c'tor
         public MainWindowViewModel()
         {
             calculator = new NaiveCalculateService(Config.CalculateConfig);
@@ -86,9 +97,12 @@ namespace Toys.Client.ViewModels
             ChangeSettingCommand = new DelegateCommand(new Action(ExecChangeSetting));
             ExitCommand = new DelegateCommand(new Action(ExecExit));
             CopyCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecCopy));
-            DetailCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecDetail));
+            DefaultActionCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecDefaultAction));
+            ActivateCommand = new DelegateCommand(new Action(ExecActivate));
+            ActionCommand = new DelegateCommand<EntryAction>(new Action<EntryAction>(ExecAction));
         }
 
+        // functions
         private void ExecChangeSetting()
         {
             Process fileopener = new Process();
@@ -107,22 +121,25 @@ namespace Toys.Client.ViewModels
             Clipboard.SetText(entry.Display);
         }
 
-        private void ExecDetail(CommonEntry entry)
+        private void ExecDefaultAction(CommonEntry entry)
         {
-            Debug.Print(entry.Type);
-            if (entry.Type == nameof(CalculateEntry))
+            Debug.Print("exec default action");
+            ExecAction(entry.ActionList[entry.DefaultActionIdx]);
+        }
+
+        private void ExecActivate()
+        {
+            ActivateMainWindowAction?.Invoke();
+        }
+
+        private void ExecAction(EntryAction action)
+        {
+            if (action.Detail != null)
             {
-                Clipboard.SetText(entry.Display);
+                (DetailViewModel.Src, DetailViewModel.Dst) = action.Detail();
+                ShowDetailAction?.Invoke();
             }
-            else if (entry.Type == nameof(TranslateEntry))
-            {
-                ResultDetailView window = new ResultDetailView(currentText.Trim(), entry.Display);
-                window.ShowDialog();
-            }
-            else if (entry.Type == nameof(SearchEntry))
-            {
-                searcher.Open((SearchEntry)entry);
-            }
+            action.Run?.Invoke();
         }
 
         private void Query(object sender, DoWorkEventArgs e)
@@ -136,14 +153,9 @@ namespace Toys.Client.ViewModels
                 {
                     if (searcher != null)
                     {
-                        List<SearchEntry> res = searcher.Search(content);
-                        if (res != null)
+                        foreach (SearchEntry entry in searcher.Search(content))
                         {
-                            foreach (SearchEntry entry in res)
-                            {
-                                Debug.Print(entry.Url);
-                                resultList.Add(entry);
-                            }
+                            resultList.Add(entry);
                         }
                     }
                     if ("0123456789-.(（".Contains(content[0]))
@@ -155,7 +167,10 @@ namespace Toys.Client.ViewModels
                         content = content.Replace('（', '(').Replace('）', ')');
                         content = content.Replace('、', '/').Replace('《', '<');
                         content = content.Replace("**", "^").Replace("<<", "*2^");
-                        resultList.Add(calculator.Calculate(content));
+                        foreach (CalculateEntry entry in calculator.Calculate(content))
+                        {
+                            resultList.Add(entry);
+                        }
                     }
                     else
                     {

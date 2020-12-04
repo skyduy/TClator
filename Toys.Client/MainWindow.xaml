@@ -8,7 +8,12 @@
         mc:Ignorable="d"
         Title="MainWindow" Width="800" ShowInTaskbar="False" WindowStyle="None" ResizeMode="NoResize"
         SizeToContent="Height" MaxHeight="494.4" WindowStartupLocation="Manual" AllowsTransparency="True" Background="Transparent"
-        Deactivated="Window_Deactivated" MouseDown="Window_MouseDown">
+        Deactivated="Window_Deactivated" Activated="Window_Activated" MouseDown="Window_MouseDown" PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.InputBindings>
+        <KeyBinding Gesture="Alt+Q" Command="{Binding ActivateCommand}" 
+                    HotkeyManager.RegisterGlobalHotkey="True" />
+    </Window.InputBindings>
 
     <Border Background="White" BorderThickness="1" CornerRadius="8">
         <Grid Margin="8">
@@ -25,7 +30,8 @@
                 <TextBox x:Name="InputBox" Height="40" FontSize="18" VerticalContentAlignment="Center"
                          Text="{Binding CurrentText, UpdateSourceTrigger=PropertyChanged, Delay=200}"/>
 
-                <ListBox x:Name="ResultList"  MaxHeight="429.4" FontSize="16" ItemsSource="{Binding ResultList}">
+                <ListBox x:Name="ResultList"  MaxHeight="429.4" FontSize="16" ItemsSource="{Binding ResultList}" 
+                         HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.Style>
                         <Style TargetType="ListBox">
                             <Style.Triggers>
@@ -43,17 +49,36 @@
                     </ListBox.Style>
 
                     <ListBox.InputBindings>
-                        <KeyBinding Key="Enter" Command="{Binding DetailCommand}" 
-                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"/>
+                        <KeyBinding Key="Enter" Command="{Binding DefaultActionCommand}" 
+                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"/>
                         <KeyBinding Key="C" Modifiers="Control" Command="{Binding CopyCommand}" 
                                     CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}" />
                     </ListBox.InputBindings>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Margin="0 2 0 2" Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                <Image Source="{Binding ImageData}" Margin="0 0 5 0"  VerticalAlignment="Center" HorizontalAlignment="Left" Stretch="None"/>
-                                <TextBlock Text="{Binding Display}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                            </StackPanel>
+                            <DockPanel Margin="0 2 0 2" Height="32" LastChildFill="True">
+                                <Image Grid.Row="0" Grid.Column="0" Source="{Binding ImageData}" Margin="0 0 5 0"  VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Display}" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                                    <TextBlock.InputBindings>
+                                        <MouseBinding MouseAction="LeftDoubleClick"
+                                                      Command="{Binding DataContext.DefaultActionCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                      CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}" />
+                                    </TextBlock.InputBindings>
+
+                                    <TextBlock.ContextMenu>
+                                        <ContextMenu ItemsSource="{Binding ActionList}">
+                                            <ContextMenu.ItemTemplate>
+                                                <DataTemplate>
+                                                    <MenuItem Header="{Binding Name}"
+                                                              Command="{Binding DataContext.ActionCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                              CommandParameter="{Binding DataContext, RelativeSource={RelativeSource Mode=Self}}">
+                                                    </MenuItem>
+                                                </DataTemplate>
+                                            </ContextMenu.ItemTemplate>
+                                        </ContextMenu>
+                                    </TextBlock.ContextMenu>
+                                </TextBlock>
+                            </DockPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>

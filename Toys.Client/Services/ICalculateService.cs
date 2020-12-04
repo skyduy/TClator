@@ -1,9 +1,10 @@
-﻿using Toys.Client.Models;
+﻿using System.Collections.Generic;
+using Toys.Client.Models;
 
 namespace Toys.Client.Services
 {
     interface ICalculateService
     {
-        CalculateEntry Calculate(string question);
+        List<CalculateEntry> Calculate(string question);
     }
 }

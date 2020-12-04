@@ -16,24 +16,27 @@ namespace Toys.Client.Services
             Enable = setting.Enable;
         }
 
-        public CalculateEntry Calculate(string question)
+        public List<CalculateEntry> Calculate(string question)
         {
-            if (!Enable) return default;
+            List<CalculateEntry> ans = new List<CalculateEntry>();
+            if (!Enable) return ans;
 
-            CalculateEntry answer = new CalculateEntry();
             question = Preprocess(question);
             if (question != string.Empty)
             {
                 try
                 {
                     question = ConvertInfixToPostfix(question);
-                    answer.Display = EvaluatePostfixExpression(question).ToString();
+                    ans.Add(new CalculateEntry(EvaluatePostfixExpression(question).ToString())
+                    {
+                        Src = question
+                    });
                 }
                 catch (Exception)
                 {
                 }
             }
-            return answer;
+            return ans;
         }
 
         private string Preprocess(string input)

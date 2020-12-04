@@ -1,30 +1,27 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using Toys.Client.ViewModels;
 
 namespace Toys.Client.Views
 {
     /// <summary>
     /// ResultDetailView.xaml 的交互逻辑
     /// </summary>
-    public partial class ResultDetailView : Window
+    public partial class TranslateResultDetailView : Window
     {
-        public ResultDetailView(string src, string dst)
+        public TranslateResultDetailView()
         {
             InitializeComponent();
-
             Left = (SystemParameters.WorkArea.Width - Width) / 2;
             Top = SystemParameters.WorkArea.Height / 6;
 
-            DataContext = new MiniResultDetailViewModel(src, dst);
             PreviewKeyDown += new KeyEventHandler(HandleEsc);
-
-            ResultBox.Focus();
         }
 
         private void HandleEsc(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Escape)
-                Close();
+                Hide();
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -34,16 +31,15 @@ namespace Toys.Client.Views
                 DragMove();
             }
         }
-    }
 
-    class MiniResultDetailViewModel
-    {
-        public string Src { get; set; }
-        public string Dst { get; set; }
-        public MiniResultDetailViewModel(string src, string dst)
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            Src = src;
-            Dst = dst;
+            // 禁用 Alt
+            if (e.SystemKey == Key.LeftAlt || e.SystemKey == Key.RightAlt)
+            {
+                e.Handled = true;
+                return;
+            }
         }
     }
 }

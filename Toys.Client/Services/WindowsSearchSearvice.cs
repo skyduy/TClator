@@ -100,19 +100,11 @@ namespace Toys.Client.Services
                 }
                 if (contain)
                 {
+                    entry.Src = keyword;
                     res.Add(entry);
                 }
             }
             return res;
-        }
-
-        public bool Open(SearchEntry entry)
-        {
-            Process fileopener = new Process();
-            fileopener.StartInfo.FileName = "explorer";
-            fileopener.StartInfo.Arguments = "\"" + entry.Url + "\"";
-            fileopener.Start();
-            return false;
         }
     }
 }
