@@ -121,6 +121,7 @@ namespace Toys.Client
                 viewModel.ExitCommand.Execute();
             }
 
+            detailView.Close();
             Close();
         }
 
