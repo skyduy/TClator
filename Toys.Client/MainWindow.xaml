@@ -1,41 +1,78 @@
-﻿<Window x:Class="Toys.Client.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Toys.Client"
-        xmlns:tb="http://www.hardcodet.net/taskbar" 
-        mc:Ignorable="d"
-        Title="MainWindow" Width="800" ShowInTaskbar="False" WindowStyle="None" ResizeMode="NoResize"
-        SizeToContent="Height" MaxHeight="494.4" WindowStartupLocation="Manual" AllowsTransparency="True" Background="Transparent"
-        Deactivated="Window_Deactivated" Activated="Window_Activated" MouseDown="Window_MouseDown" PreviewKeyDown="Window_PreviewKeyDown">
+﻿<Window
+    x:Class="Toys.Client.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Toys.Client"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tb="http://www.hardcodet.net/taskbar"
+    Title="MainWindow"
+    Width="800"
+    MaxHeight="494.4"
+    Activated="Window_Activated"
+    AllowsTransparency="True"
+    Background="Transparent"
+    Deactivated="Window_Deactivated"
+    MouseDown="Window_MouseDown"
+    PreviewKeyDown="Window_PreviewKeyDown"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    SizeToContent="Height"
+    WindowStartupLocation="Manual"
+    WindowStyle="None"
+    mc:Ignorable="d">
 
     <Window.InputBindings>
-        <KeyBinding Gesture="Alt+Q" Command="{Binding ActivateCommand}" 
-                    HotkeyManager.RegisterGlobalHotkey="True" />
+        <KeyBinding
+            Command="{Binding ActivateCommand}"
+            Gesture="Alt+Q"
+            HotkeyManager.RegisterGlobalHotkey="True" />
     </Window.InputBindings>
 
-    <Border Background="White" BorderThickness="1" CornerRadius="8">
+    <Border
+        Background="White"
+        BorderThickness="1"
+        CornerRadius="8">
         <Grid Margin="8">
-            <tb:TaskbarIcon x:Name="Toys" Visibility="Visible" ToolTipText="Toys" IconSource="favicon.ico" 
-                            MenuActivation="RightClick" TrayMouseDoubleClick="Toys_TrayMouseDoubleClick">
+            <tb:TaskbarIcon
+                x:Name="Toys"
+                IconSource="favicon.ico"
+                MenuActivation="RightClick"
+                ToolTipText="Toys"
+                TrayMouseDoubleClick="Toys_TrayMouseDoubleClick"
+                Visibility="Visible">
                 <tb:TaskbarIcon.ContextMenu>
                     <ContextMenu>
-                        <MenuItem x:Name="Setting" Header="设置" Click="Setting_Click"/>
-                        <MenuItem x:Name="Exist" Header="Exit" Click="Exist_Click" />
+                        <MenuItem
+                            x:Name="Setting"
+                            Click="Setting_Click"
+                            Header="设置" />
+                        <MenuItem
+                            x:Name="Exist"
+                            Click="Exist_Click"
+                            Header="Exit" />
                     </ContextMenu>
                 </tb:TaskbarIcon.ContextMenu>
             </tb:TaskbarIcon>
             <StackPanel Orientation="Vertical">
-                <TextBox x:Name="InputBox" Height="40" FontSize="18" VerticalContentAlignment="Center"
-                         Text="{Binding CurrentText, UpdateSourceTrigger=PropertyChanged, Delay=200}"/>
+                <TextBox
+                    x:Name="InputBox"
+                    Height="40"
+                    VerticalContentAlignment="Center"
+                    FontSize="18"
+                    Text="{Binding CurrentText, UpdateSourceTrigger=PropertyChanged, Delay=200}" />
 
-                <ListBox x:Name="ResultList"  MaxHeight="429.4" FontSize="16" ItemsSource="{Binding ResultList}" 
-                         HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox
+                    x:Name="ResultList"
+                    MaxHeight="429.4"
+                    HorizontalContentAlignment="Stretch"
+                    FontSize="16"
+                    ItemsSource="{Binding ResultList}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.Style>
                         <Style TargetType="ListBox">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource Self}}"  Value="0">
+                                <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource Self}}" Value="0">
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate>
@@ -49,44 +86,82 @@
                     </ListBox.Style>
 
                     <ListBox.InputBindings>
-                        <KeyBinding Key="Enter" Command="{Binding DefaultActionCommand}" 
-                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"/>
-                        <KeyBinding Key="C" Modifiers="Control" Command="{Binding CopyCommand}" 
-                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}" />
+                        <KeyBinding
+                            Key="Enter"
+                            Command="{Binding DefaultActionCommand}"
+                            CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}" />
+                        <KeyBinding
+                            Key="Enter"
+                            Command="{Binding SecondActionCommand}"
+                            CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                            Modifiers="Alt" />
+                        <KeyBinding
+                            Key="Enter"
+                            Command="{Binding SecondActionCommand}"
+                            CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"
+                            Modifiers="Ctrl" />
+                        <KeyBinding
+                            Key="C"
+                            Command="{Binding CopyCommand}"
+                            CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"
+                            Modifiers="Ctrl" />
                     </ListBox.InputBindings>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <DockPanel Margin="0 2 0 2" Height="32" LastChildFill="True">
-                                <Image Grid.Row="0" Grid.Column="0" Source="{Binding ImageData}" Margin="0 0 5 0"  VerticalAlignment="Center"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Display}" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                            <DockPanel
+                                Height="32"
+                                Margin="0,2,0,2"
+                                LastChildFill="True">
+                                <Image
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Margin="0,0,5,0"
+                                    VerticalAlignment="Center"
+                                    Source="{Binding ImageData}" />
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Center"
+                                    Text="{Binding Display}">
                                     <TextBlock.InputBindings>
-                                        <MouseBinding MouseAction="LeftDoubleClick"
-                                                      Command="{Binding DataContext.DefaultActionCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-                                                      CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}" />
+                                        <MouseBinding
+                                            Command="{Binding DataContext.DefaultActionCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                            CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"
+                                            MouseAction="LeftDoubleClick" />
                                     </TextBlock.InputBindings>
 
                                     <TextBlock.ContextMenu>
-                                        <ContextMenu ItemsSource="{Binding ActionList}" >
+                                        <ContextMenu ItemsSource="{Binding ActionList}">
                                             <ContextMenu.Resources>
                                                 <Style TargetType="MenuItem">
                                                     <Setter Property="Template">
                                                         <Setter.Value>
                                                             <ControlTemplate TargetType="MenuItem">
-                                                                <Grid x:Name="_grid" Height="24" Background="#FBFBFD">
+                                                                <Grid
+                                                                    x:Name="_grid"
+                                                                    Height="24"
+                                                                    Background="#FBFBFD">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="*" MinWidth="80"/>
+                                                                        <ColumnDefinition Width="*" MinWidth="80" />
                                                                     </Grid.ColumnDefinitions>
-                                                                    <TextBlock x:Name="_txt" Foreground="#2D2D30" Margin="24 0 24 0"  VerticalAlignment="Center" 
-                                                                               Text="{Binding Name}">
+                                                                    <TextBlock
+                                                                        x:Name="_txt"
+                                                                        Margin="24,0,24,0"
+                                                                        VerticalAlignment="Center"
+                                                                        Foreground="#2D2D30"
+                                                                        Text="{Binding Name}">
                                                                         <TextBlock.InputBindings>
-                                                                            <MouseBinding Command="{Binding DataContext.ActionCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" MouseAction="LeftClick" 
-                                                                                          CommandParameter="{Binding DataContext, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                                                            <MouseBinding
+                                                                                Command="{Binding DataContext.ActionCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                                                CommandParameter="{Binding DataContext, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                                MouseAction="LeftClick" />
                                                                         </TextBlock.InputBindings>
                                                                     </TextBlock>
                                                                 </Grid>
                                                                 <ControlTemplate.Triggers>
                                                                     <Trigger Property="IsMouseOver" Value="true">
-                                                                        <Setter TargetName="_grid" Property="Background" Value="#FF85CBF3"/>
+                                                                        <Setter TargetName="_grid" Property="Background" Value="#FF85CBF3" />
                                                                     </Trigger>
                                                                 </ControlTemplate.Triggers>
                                                             </ControlTemplate>

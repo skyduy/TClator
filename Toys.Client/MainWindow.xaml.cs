@@ -40,7 +40,6 @@ namespace Toys.Client
 
         private void ActivateMainWindow()
         {
-            // capture other alt
             Activate();
             InputBox.SelectAll();
             Show();

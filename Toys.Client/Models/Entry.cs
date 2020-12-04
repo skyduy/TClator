@@ -23,6 +23,7 @@ namespace Toys.Client.Models
         public string Display { get; set; } = "";
 
         public int DefaultActionIdx;
+        public int SecondActionIdx;
         public List<EntryAction> ActionList { get; set; } = new List<EntryAction>();
     }
 
@@ -37,6 +38,7 @@ namespace Toys.Client.Models
             });
 
             Display = display;
+            DefaultActionIdx = 0;
             DefaultActionIdx = 0;
         }
 
@@ -62,6 +64,7 @@ namespace Toys.Client.Models
             });
             Display = display;
             DefaultActionIdx = 1;
+            SecondActionIdx = 1;
         }
 
         public void Copy()
@@ -103,6 +106,7 @@ namespace Toys.Client.Models
             Url = url;
 
             DefaultActionIdx = 0;
+            SecondActionIdx = 2;
         }
 
         public void Run()

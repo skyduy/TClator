@@ -77,6 +77,7 @@ namespace Toys.Client.ViewModels
         public DelegateCommand ExitCommand { get; set; }
         public DelegateCommand<CommonEntry> CopyCommand { get; set; }
         public DelegateCommand<CommonEntry> DefaultActionCommand { get; set; }
+        public DelegateCommand<CommonEntry> SecondActionCommand { get; set; }
         public DelegateCommand ActivateCommand { get; set; }
         public DelegateCommand<EntryAction> ActionCommand { get; set; }
 
@@ -98,6 +99,7 @@ namespace Toys.Client.ViewModels
             ExitCommand = new DelegateCommand(new Action(ExecExit));
             CopyCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecCopy));
             DefaultActionCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecDefaultAction));
+            SecondActionCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecSecondAction));
             ActivateCommand = new DelegateCommand(new Action(ExecActivate));
             ActionCommand = new DelegateCommand<EntryAction>(new Action<EntryAction>(ExecAction));
         }
@@ -123,8 +125,12 @@ namespace Toys.Client.ViewModels
 
         private void ExecDefaultAction(CommonEntry entry)
         {
-            Debug.Print("exec default action");
             ExecAction(entry.ActionList[entry.DefaultActionIdx]);
+        }
+
+        private void ExecSecondAction(CommonEntry entry)
+        {
+            ExecAction(entry.ActionList[entry.SecondActionIdx]);
         }
 
         private void ExecActivate()
