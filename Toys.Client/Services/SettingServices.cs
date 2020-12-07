@@ -9,25 +9,23 @@ namespace Toys.Client.Services
     {
         public static Setting Load(string configFn)
         {
-            if (File.Exists(configFn))
-            {
-                try
-                {
-                    using StreamReader r = new StreamReader(configFn);
-                    string json = r.ReadToEnd();
-                    return JsonConvert.DeserializeObject<Setting>(json);
-                }
-                catch (System.Exception)
-                {
-                    return new Setting();
-                }
-            }
-            else
+            if (!File.Exists(configFn))
             {
                 Setting setting = new Setting();
                 Dump(setting, configFn);
                 return setting;
             }
+
+            string json;
+            using (FileStream fsRead = new FileStream(configFn, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                int fsLen = (int)fsRead.Length;
+                Debug.Print("{0}", fsLen);
+                byte[] heByte = new byte[fsLen];
+                fsRead.Read(heByte, 0, heByte.Length);
+                json = System.Text.Encoding.UTF8.GetString(heByte);
+            }
+            return JsonConvert.DeserializeObject<Setting>(json);
         }
 
         public static void Dump(Setting setting, string configFn)

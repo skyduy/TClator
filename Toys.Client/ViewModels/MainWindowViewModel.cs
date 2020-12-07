@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.IO;
 using Toys.Client.Services;
 using Toys.Client.Models;
-using Toys.Client.Views;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -111,11 +110,13 @@ namespace Toys.Client.ViewModels
         // functions
         private void ReloadConfig(object source, FileSystemEventArgs e)
         {
-            Debug.Print("Load config.");
             Config = SettingServices.Load(settingFilename);
-            calculator = new NaiveCalculateService(Config.CalculateConfig);
-            translator = new YoudaoTranslateService(Config.TranslateConfig);
-            searcher = new SearchService(Config.SearchConfig);
+            if (Config != null)
+            {
+                calculator = new NaiveCalculateService(Config.CalculateConfig);
+                translator = new YoudaoTranslateService(Config.TranslateConfig);
+                searcher = new SearchService(Config.SearchConfig);
+            }
         }
 
         private void ExecChangeSetting()
