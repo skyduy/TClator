@@ -22,7 +22,8 @@ namespace Toys.Client.ViewModels
 
         static private readonly string settingFilename = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Toys", "config.json");
         public Setting Config { get; set; } = SettingServices.Load(settingFilename);
-        FileSystemWatcher settingWatcher = new FileSystemWatcher()
+
+        readonly FileSystemWatcher settingWatcher = new FileSystemWatcher()
         {
             Path = Path.GetDirectoryName(settingFilename),
             Filter = Path.GetFileName(settingFilename),
@@ -114,10 +115,7 @@ namespace Toys.Client.ViewModels
             Config = SettingServices.Load(settingFilename);
             calculator = new NaiveCalculateService(Config.CalculateConfig);
             translator = new YoudaoTranslateService(Config.TranslateConfig);
-            if (OperatingSystem.IsWindows())
-            {
-                searcher = new WindowsIndexSearchSearvice(Config.SearchConfig);
-            }
+            searcher = new SearchService(Config.SearchConfig);
         }
 
         private void ExecChangeSetting()
@@ -232,7 +230,7 @@ namespace Toys.Client.ViewModels
                         item.ImageData = new BitmapImage(new Uri(@"Assets\youdao.ico", UriKind.Relative));
                         break;
                     case "SearchEntry":
-                        var sysicon = Icon.ExtractAssociatedIcon(((SearchEntry)item).Url);
+                        var sysicon = Icon.ExtractAssociatedIcon(((SearchEntry)item).FullPath);
                         var bmpSrc = Imaging.CreateBitmapSourceFromHIcon(
                                     sysicon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
                         sysicon.Dispose();

@@ -16,11 +16,9 @@ Translator / Calculator / Launcher / File Searcher
 ![demo4](docs/img/demo4.png)
 
 ## TODOs
-- [ ] 依赖：摆脱对 Windows Index 的依赖
-- [ ] 文件搜索树设置深度
+- [x] 依赖：摆脱对 Windows Index 的依赖
 - [ ] 文件搜索支持文件夹名字搜索
-- [ ] 索引异步更新
-- [ ] 后台实时更新索引
+- [x] 后台异步实时更新索引
 - [ ] User privacy：不显示用户设置为隐藏属性的文件
 - [ ] 取消搜索 . 开头的文件（除非搜索框含有 . ）
 - [x] 设置保存后，不用重启程序
@@ -32,3 +30,4 @@ Translator / Calculator / Launcher / File Searcher
 - [ ] 内存优化、性能优化
 - [ ] ListBox Item 记录最近最常使用
 - [ ] ListBox Item 惰性加载及其显示策略
+- [ ] UWP Apps 搜索支持

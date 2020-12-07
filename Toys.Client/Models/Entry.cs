@@ -80,11 +80,37 @@ namespace Toys.Client.Models
 
     class SearchEntry : CommonEntry
     {
-        public string Match { get; set; } = "";
-        public string Url { get; set; } = "";
+        public int Count { get; set; } = 0;
+        public string FullPath { get; set; } = "";
+        public List<string> Matches { get; } = new List<string>();
 
-        public SearchEntry(string fn, string extension, string url)
+        public bool Match(string word)
         {
+            foreach (string t in Matches)
+            {
+                if (t.ToLower().Contains(word.ToLower()))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool Match(string[] words)
+        {
+            foreach (string word in words)
+            {
+                if (Match(word))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public SearchEntry(string fullPath, string alias)
+        {
+            fullPath = fullPath.Replace('/', '\\');
             ActionList.Add(new EntryAction()
             {
                 Name = "Run",
@@ -101,9 +127,19 @@ namespace Toys.Client.Models
                 Run = new Action(ShowInExplorer)
             });
 
-            Match = (fn + " " + Path.GetFileNameWithoutExtension(url) + " " + extension).ToLower();
-            Display = fn;
-            Url = url;
+            Count = 1;
+            FullPath = fullPath;
+            string filename = Path.GetFileNameWithoutExtension(FullPath);
+            Matches.Add(filename);
+            if (alias != null)
+            {
+                Display = alias;
+                Matches.Add(alias);
+            }
+            else
+            {
+                Display = filename;
+            }
 
             DefaultActionIdx = 0;
             SecondActionIdx = 2;
@@ -113,18 +149,18 @@ namespace Toys.Client.Models
         {
             Process fileopener = new Process();
             fileopener.StartInfo.FileName = "explorer";
-            fileopener.StartInfo.Arguments = "\"" + Url + "\"";
+            fileopener.StartInfo.Arguments = "\"" + FullPath + "\"";
             fileopener.Start();
         }
 
         public void CopyPath()
         {
-            Clipboard.SetText(Url);
+            Clipboard.SetText(FullPath);
         }
 
         public void ShowInExplorer()
         {
-            string folder = Path.GetDirectoryName(Url);
+            string folder = Path.GetDirectoryName(FullPath);
             Process fileopener = new Process();
             fileopener.StartInfo.FileName = "explorer";
             fileopener.StartInfo.Arguments = "\"" + folder + "\"";

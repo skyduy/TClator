@@ -7,11 +7,12 @@ using Toys.Client.Models;
 
 namespace Toys.Client.Services
 {
-    class WindowsIndexSearchSearvice : ISearchService
+    class WindowsIndexSearchService : ISearchService
     {
-        private readonly List<SearchEntry> Programs = new List<SearchEntry>();
+        readonly Dictionary<string, string> lnk2real = new Dictionary<string, string>();
+        readonly Dictionary<string, SearchEntry> refCount = new Dictionary<string, SearchEntry>();
 
-        public WindowsIndexSearchSearvice(SearchSetting setting)
+        public WindowsIndexSearchService(SearchSetting setting)
         {
             if (!OperatingSystem.IsWindows())
             {
@@ -59,7 +60,6 @@ namespace Toys.Client.Services
                         path = ((IWshShortcut)shell.CreateShortcut(path)).TargetPath;
                         if (!System.IO.File.Exists(path)) continue;
                     }
-
                     string extension = path;
                     int idx = path.LastIndexOf('.');
                     if (idx != -1)
@@ -69,7 +69,7 @@ namespace Toys.Client.Services
 
                     if (extensions == null || extensions.Contains(extension.ToLower()))
                     {
-                        Programs.Add(new SearchEntry(fn, extension, path.Replace('/', '\\')));
+                        Increase(path, fn);
                     }
                 }
             }
@@ -83,25 +83,32 @@ namespace Toys.Client.Services
             }
         }
 
+        private void Increase(string path, string alias = null)
+        {
+            path = path.Replace("/", "\\");
+            if (refCount.ContainsKey(path))
+            {
+                refCount[path].Count += 1;
+                if (alias != null)
+                {
+                    refCount[path].Matches.Add(alias);
+                }
+            }
+            else
+            {
+                refCount[path] = new SearchEntry(path, alias);
+            }
+        }
+
         public List<SearchEntry> Search(string keyword)
         {
             string[] words = keyword.ToLower().Split(' ');
             List<SearchEntry> res = new List<SearchEntry>();
-            foreach (SearchEntry entry in Programs)
+            foreach (var item in refCount)
             {
-                bool contain = true;
-                foreach (string word in words)
+                if (item.Value.Match(words))
                 {
-                    if (!entry.Match.Contains(word))
-                    {
-                        contain = false;
-                        break;
-                    }
-                }
-                if (contain)
-                {
-                    entry.Src = keyword;
-                    res.Add(entry);
+                    res.Add(item.Value);
                 }
             }
             return res;
