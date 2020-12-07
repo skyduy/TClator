@@ -151,19 +151,40 @@ namespace Toys.Client.Services
             }
         }
 
+        private void GetAllFiles(string folder, string extension, ref List<string> allFiles)
+        {
+            foreach (string file in Directory.GetFiles(folder, extension))
+            {
+                allFiles.Add(file);
+            }
+            foreach (string subDir in Directory.GetDirectories(folder))
+            {
+                try
+                {
+                    GetAllFiles(subDir, extension, ref allFiles);
+                }
+                catch
+                {
+                    Debug.Print("Can not access dir {0}", subDir);
+                }
+            }
+        }
+
         private void Init(ref List<string> extensions, ref List<string> folders)
         {
-            string[] allFiles = Array.Empty<string>();
+            List<string> allFiles = new List<string>();
             foreach (string folder in folders)
             {
                 foreach (string extension in extensions)
                 {
-                    try
-                    {
-                        allFiles = allFiles.Concat(Directory.GetFiles(folder, extension, SearchOption.AllDirectories)).ToArray();
-                    }
-                    catch (UnauthorizedAccessException) { }
+                    GetAllFiles(folder, extension, ref allFiles);
                 }
+            }
+
+            List<string> support = new List<string>();
+            foreach (string extension in extensions)
+            {
+                support.Add(extension[1..]);
             }
 
             foreach (string file in allFiles)
@@ -177,7 +198,7 @@ namespace Toys.Client.Services
                 if (ext == ".lnk")
                 {
                     path = ((IWshShortcut)shell.CreateShortcut(path)).TargetPath;
-                    if (!System.IO.File.Exists(path)) continue;
+                    if (!System.IO.File.Exists(path) || !support.Contains(Path.GetExtension(path))) continue;
                 }
                 Increase(path, fn);
             }
