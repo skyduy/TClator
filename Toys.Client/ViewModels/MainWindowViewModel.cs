@@ -22,10 +22,17 @@ namespace Toys.Client.ViewModels
 
         static private readonly string settingFilename = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Toys", "config.json");
         public Setting Config { get; set; } = SettingServices.Load(settingFilename);
+        FileSystemWatcher settingWatcher = new FileSystemWatcher()
+        {
+            Path = Path.GetDirectoryName(settingFilename),
+            Filter = Path.GetFileName(settingFilename),
+            NotifyFilter = NotifyFilters.LastWrite,
+            EnableRaisingEvents = true
+        };
 
-        readonly ICalculateService calculator;
-        readonly ITranslateService translator;
-        readonly ISearchService searcher;
+        ICalculateService calculator;
+        ITranslateService translator;
+        ISearchService searcher;
 
         // viewmodels
         public TranslateResultDetailViewModel DetailViewModel { get; } = new TranslateResultDetailViewModel();
@@ -88,12 +95,8 @@ namespace Toys.Client.ViewModels
         // c'tor
         public MainWindowViewModel()
         {
-            calculator = new NaiveCalculateService(Config.CalculateConfig);
-            translator = new YoudaoTranslateService(Config.TranslateConfig);
-            if (OperatingSystem.IsWindows())
-            {
-                searcher = new WindowsSearchSearvice(Config.SearchConfig);
-            }
+            settingWatcher.Changed += ReloadConfig;
+            ReloadConfig(null, null);
 
             ChangeSettingCommand = new DelegateCommand(new Action(ExecChangeSetting));
             ExitCommand = new DelegateCommand(new Action(ExecExit));
@@ -105,6 +108,18 @@ namespace Toys.Client.ViewModels
         }
 
         // functions
+        private void ReloadConfig(object source, FileSystemEventArgs e)
+        {
+            Debug.Print("Load config.");
+            Config = SettingServices.Load(settingFilename);
+            calculator = new NaiveCalculateService(Config.CalculateConfig);
+            translator = new YoudaoTranslateService(Config.TranslateConfig);
+            if (OperatingSystem.IsWindows())
+            {
+                searcher = new WindowsIndexSearchSearvice(Config.SearchConfig);
+            }
+        }
+
         private void ExecChangeSetting()
         {
             Process fileopener = new Process();
@@ -180,9 +195,13 @@ namespace Toys.Client.ViewModels
                     }
                     else
                     {
-                        foreach (TranslateEntry entry in translator.Translate(content))
+                        var res = translator.Translate(content);
+                        if (res != null)
                         {
-                            resultList.Add(entry);
+                            foreach (TranslateEntry entry in res)
+                            {
+                                resultList.Add(entry);
+                            }
                         }
                     }
                     e.Result = resultList;

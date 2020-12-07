@@ -23,10 +23,11 @@ Translator / Calculator / Launcher / File Searcher
 - [ ] 后台实时更新索引
 - [ ] User privacy：不显示用户设置为隐藏属性的文件
 - [ ] 取消搜索 . 开头的文件（除非搜索框含有 . ）
-- [ ] 设置保存后，不用重新加载程序
+- [x] 设置保存后，不用重启程序
 - [x] ListBox Item 响应双击打开
 - [x] ListBox Item 不同结果响应右键菜单，不同结果响应不同菜单
 - [x] ListBox Item 结果美化
+- [ ] 添加 Log 日志文件
 - [ ] 主动 GC
 - [ ] 内存优化、性能优化
 - [ ] ListBox Item 记录最近最常使用

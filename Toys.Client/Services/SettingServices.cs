@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Diagnostics;
 using System.IO;
 using Toys.Client.Models;
 
@@ -10,9 +11,16 @@ namespace Toys.Client.Services
         {
             if (File.Exists(configFn))
             {
-                using StreamReader r = new StreamReader(configFn);
-                string json = r.ReadToEnd();
-                return JsonConvert.DeserializeObject<Setting>(json);
+                try
+                {
+                    using StreamReader r = new StreamReader(configFn);
+                    string json = r.ReadToEnd();
+                    return JsonConvert.DeserializeObject<Setting>(json);
+                }
+                catch (System.Exception)
+                {
+                    return new Setting();
+                }
             }
             else
             {

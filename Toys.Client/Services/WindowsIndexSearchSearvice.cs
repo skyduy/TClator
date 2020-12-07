@@ -7,11 +7,11 @@ using Toys.Client.Models;
 
 namespace Toys.Client.Services
 {
-    class WindowsSearchSearvice : ISearchService
+    class WindowsIndexSearchSearvice : ISearchService
     {
         private readonly List<SearchEntry> Programs = new List<SearchEntry>();
 
-        public WindowsSearchSearvice(SearchSetting setting)
+        public WindowsIndexSearchSearvice(SearchSetting setting)
         {
             if (!OperatingSystem.IsWindows())
             {
