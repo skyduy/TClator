@@ -293,13 +293,31 @@ namespace Toys.Client.Services
 
         public List<SearchEntry> Search(string word)
         {
-            string[] words = word.ToLower().Split(' ');
+            HashSet<string> Appended = new HashSet<string>();
             List<SearchEntry> res = new List<SearchEntry>();
             foreach (var item in refCount)
             {
-                if (item.Value.Match(words) && System.IO.File.Exists(item.Value.FullPath))
+                if (item.Value.Match(word) && System.IO.File.Exists(item.Value.FullPath))
                 {
                     res.Add(item.Value);
+                    Appended.Add(item.Value.FullPath);
+                    if (res.Count >= 5)
+                    {
+                        return res;
+                    }
+                }
+            }
+
+            string[] words = word.ToLower().Split(' ');
+            foreach (var item in refCount)
+            {
+                if (item.Value.Match(words) && System.IO.File.Exists(item.Value.FullPath) && !Appended.Contains(item.Value.FullPath))
+                {
+                    res.Add(item.Value);
+                    if (res.Count >= 5)
+                    {
+                        return res;
+                    }
                 }
             }
             return res;

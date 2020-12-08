@@ -100,12 +100,12 @@ namespace Toys.Client.Models
         {
             foreach (string word in words)
             {
-                if (Match(word))
+                if (!Match(word))
                 {
-                    return true;
+                    return false;
                 }
             }
-            return false;
+            return true;
         }
 
         public SearchEntry(string fullPath, string alias)
