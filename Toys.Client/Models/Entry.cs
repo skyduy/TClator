@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using Toys.Client.Services;
 using System.Windows.Media.Imaging;
 
 namespace Toys.Client.Models
@@ -82,31 +83,7 @@ namespace Toys.Client.Models
     {
         public int Count { get; set; } = 0;
         public string FullPath { get; set; } = "";
-        public List<string> Matches { get; } = new List<string>();
-
-        public bool Match(string word)
-        {
-            foreach (string t in Matches)
-            {
-                if (t.ToLower().Contains(word.ToLower()))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public bool Match(string[] words)
-        {
-            foreach (string word in words)
-            {
-                if (!Match(word))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
+        public List<string> Aliases { get; } = new List<string>();
 
         public SearchEntry(string fullPath, string alias)
         {
@@ -130,11 +107,11 @@ namespace Toys.Client.Models
             Count = 1;
             FullPath = fullPath;
             string filename = Path.GetFileNameWithoutExtension(FullPath);
-            Matches.Add(filename);
+            Aliases.Add(filename.ToLower());
             if (alias != null)
             {
                 Display = alias;
-                Matches.Add(alias);
+                Aliases.Add(alias.ToLower());
             }
             else
             {
@@ -151,6 +128,7 @@ namespace Toys.Client.Models
             fileopener.StartInfo.FileName = "explorer";
             fileopener.StartInfo.Arguments = "\"" + FullPath + "\"";
             fileopener.Start();
+            SearchHistory.Increase(FullPath);
         }
 
         public void CopyPath()

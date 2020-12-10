@@ -1,4 +1,6 @@
 ﻿using IWshRuntimeLibrary;
+using Microsoft.WindowsAPICodePack.Shell;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,12 +11,12 @@ using Toys.Client.Models;
 
 namespace Toys.Client.Services
 {
-    class SearchService : ISearchService
+    class WindowsSearchService : ISearchService
     {
         readonly List<FileSystemWatcher> watchers;
         private readonly WindowsSearcher searcher;
 
-        public SearchService(SearchSetting setting)
+        public WindowsSearchService(SearchSetting setting)
         {
             if (!OperatingSystem.IsWindows())
             {
@@ -22,6 +24,7 @@ namespace Toys.Client.Services
             }
             if (!setting.Enable || setting.SearchPaths.Count == 0) return;
 
+            SearchHistory.Load();
             List<string> extensions = new List<string>();
             if (!setting.Extensions.Contains("*") && setting.Extensions.Count != 0)
             {
@@ -105,7 +108,7 @@ namespace Toys.Client.Services
                 refCount[path].Count += 1;
                 if (alias != null)
                 {
-                    refCount[path].Matches.Add(alias);
+                    refCount[path].Aliases.Add(alias.ToLower());
                 }
             }
             else
@@ -127,9 +130,9 @@ namespace Toys.Client.Services
                 else if (alias != null)
                 {
                     int idx = -1;
-                    for (int i = 0; i < refCount[path].Matches.Count; i++)
+                    for (int i = 0; i < refCount[path].Aliases.Count; i++)
                     {
-                        if (refCount[path].Matches[i] == alias)
+                        if (refCount[path].Aliases[i] == alias)
                         {
                             idx = i;
                             break;
@@ -137,7 +140,7 @@ namespace Toys.Client.Services
                     }
                     if (idx != -1)
                     {
-                        refCount[path].Matches.RemoveAt(idx);
+                        refCount[path].Aliases.RemoveAt(idx);
                     }
                 }
             }
@@ -293,34 +296,136 @@ namespace Toys.Client.Services
 
         public List<SearchEntry> Search(string word)
         {
-            HashSet<string> Appended = new HashSet<string>();
+            int maxCount = 7;
+            word = word.ToLower();
             List<SearchEntry> res = new List<SearchEntry>();
-            foreach (var item in refCount)
+            var kvList = new List<(SearchEntry, double)> { };
+            foreach (var item in refCount.Values.ToList())
             {
-                if (item.Value.Match(word) && System.IO.File.Exists(item.Value.FullPath))
+                if (System.IO.File.Exists(item.FullPath))
                 {
-                    res.Add(item.Value);
-                    Appended.Add(item.Value.FullPath);
-                    if (res.Count >= 5)
+                    double score = 0;
+                    foreach (string t in item.Aliases)
                     {
-                        return res;
+                        if (t.Contains(word))
+                        {
+                            score = SearchHistory.Get(item.FullPath);
+                            if (score > 0)
+                            {
+                                break;
+                            }
+                            score = Math.Max(score, 1.0 * word.Length / t.Length);
+                        }
+                    }
+                    if (score > 0)
+                    {
+                        if (kvList.Count == 0)
+                        {
+                            kvList.Add((item, score));
+                        }
+                        else if (kvList.Count < maxCount)
+                        {
+                            int idx = kvList.Count - 1;
+                            if (kvList[idx].Item2 >= score)
+                            {
+                                kvList.Add((item, score));
+                            }
+                            else
+                            {
+                                kvList.Add(kvList[^1]);
+                                idx--;
+                                while (idx >= 0 && kvList[idx].Item2 < score)
+                                {
+                                    kvList[idx + 1] = kvList[idx];
+                                    idx--;
+                                }
+                                kvList[idx + 1] = (item, score);
+                            }
+                        }
+                        else if (kvList[maxCount - 1].Item2 < score)
+                        {
+                            int idx = maxCount - 2;
+                            while (idx >= 0 && kvList[idx].Item2 < score)
+                            {
+                                kvList[idx + 1] = kvList[idx];
+                                idx--;
+                            }
+                            kvList[idx + 1] = (item, score);
+                        }
                     }
                 }
             }
 
-            string[] words = word.ToLower().Split(' ');
-            foreach (var item in refCount)
+            foreach (var i in kvList)
             {
-                if (item.Value.Match(words) && System.IO.File.Exists(item.Value.FullPath) && !Appended.Contains(item.Value.FullPath))
-                {
-                    res.Add(item.Value);
-                    if (res.Count >= 5)
-                    {
-                        return res;
-                    }
-                }
+                res.Add(i.Item1);
             }
             return res;
+        }
+    }
+
+    static class SearchHistory
+    {
+        static private readonly string historyFilename = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Toys", "history.json");
+        public static Dictionary<string, int> records;
+
+        public static void Increase(string fullPath)
+        {
+            if (records.ContainsKey(fullPath))
+            {
+                records[fullPath]++;
+            }
+            else
+            {
+                records[fullPath] = 1;
+            }
+            Dump();
+        }
+
+        public static int Get(string fullPath)
+        {
+            if (records.ContainsKey(fullPath))
+            {
+                return records[fullPath];
+            }
+            return 0;
+        }
+
+        public static void Load()
+        {
+            if (!System.IO.File.Exists(historyFilename))
+            {
+                records = new Dictionary<string, int>();
+                Dump();
+            }
+
+            string json;
+            using (FileStream fsRead = new FileStream(historyFilename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                int fsLen = (int)fsRead.Length;
+                byte[] heByte = new byte[fsLen];
+                fsRead.Read(heByte, 0, heByte.Length);
+                json = System.Text.Encoding.UTF8.GetString(heByte);
+            }
+            records = JsonConvert.DeserializeObject<Dictionary<string, int>>(json);
+        }
+
+        public static void Dump()
+        {
+            try
+            {
+                string json = JsonConvert.SerializeObject(records);
+                if (!System.IO.File.Exists(historyFilename))
+                {
+                    FileInfo file_info = new FileInfo(historyFilename);
+                    Directory.CreateDirectory(file_info.DirectoryName);
+                }
+                System.IO.File.WriteAllText(historyFilename, json);
+            }
+            catch (Exception)
+            {
+
+            }
         }
     }
 }

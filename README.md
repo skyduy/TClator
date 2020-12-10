@@ -26,8 +26,7 @@ Translator / Calculator / Launcher / File Searcher
 - [x] ListBox Item 不同结果响应右键菜单，不同结果响应不同菜单
 - [x] ListBox Item 结果美化
 - [ ] 添加 Log 日志文件
-- [ ] 主动 GC
 - [ ] 内存优化、性能优化
-- [ ] ListBox Item 记录最近最常使用
-- [ ] ListBox Item 惰性加载及其显示策略
+- [x] ListBox Item 记录最近最常使用
+- [x] ListBox Item 加载项限制
 - [ ] UWP Apps 搜索支持

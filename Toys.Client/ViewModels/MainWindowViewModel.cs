@@ -115,7 +115,10 @@ namespace Toys.Client.ViewModels
             {
                 calculator = new NaiveCalculateService(Config.CalculateConfig);
                 translator = new YoudaoTranslateService(Config.TranslateConfig);
-                searcher = new SearchService(Config.SearchConfig);
+                if (OperatingSystem.IsWindows())
+                {
+                    searcher = new WindowsSearchService(Config.SearchConfig);
+                }
             }
         }
 
