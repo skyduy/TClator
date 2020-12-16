@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using System.Windows.Input;
-using Toys.Client.ViewModels;
 
 namespace Toys.Client.Views
 {

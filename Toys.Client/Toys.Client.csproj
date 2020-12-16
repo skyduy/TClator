@@ -5,14 +5,14 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>Toys</AssemblyName>
-    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <ApplicationIcon>Assets/favicon.ico</ApplicationIcon>
     <Version>2.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Assets\calculator.ico" />
     <None Remove="Assets\youdao.ico" />
-    <None Remove="favicon.ico" />
+    <None Remove="Assets\favicon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,7 +41,9 @@
     <Content Include="Assets\youdao.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Resource Include="favicon.ico" />
+    <Resource Include="Assets\favicon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

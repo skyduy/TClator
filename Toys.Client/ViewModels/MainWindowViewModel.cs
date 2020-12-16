@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using Toys.Client.Services;
 using Toys.Client.Models;
 using System.Diagnostics;
@@ -18,21 +17,7 @@ namespace Toys.Client.ViewModels
     class MainWindowViewModel : BindableBase
     {
         private BackgroundWorker bgw;
-
-        static private readonly string settingFilename = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Toys", "config.json");
-        public Setting Config { get; set; } = SettingServices.Load(settingFilename);
-
-        readonly FileSystemWatcher settingWatcher = new FileSystemWatcher()
-        {
-            Path = Path.GetDirectoryName(settingFilename),
-            Filter = Path.GetFileName(settingFilename),
-            NotifyFilter = NotifyFilters.LastWrite,
-            EnableRaisingEvents = true
-        };
-
-        ICalculateService calculator;
-        ITranslateService translator;
-        ISearchService searcher;
+        private readonly ServiceManager sm = new ServiceManager();
 
         // viewmodels
         public TranslateResultDetailViewModel DetailViewModel { get; } = new TranslateResultDetailViewModel();
@@ -80,12 +65,12 @@ namespace Toys.Client.ViewModels
         }
 
         // binding command
-        public DelegateCommand ChangeSettingCommand { get; set; }
+        public DelegateCommand ActivateCommand { get; set; }
         public DelegateCommand ExitCommand { get; set; }
+        public DelegateCommand ChangeSettingCommand { get; set; }
         public DelegateCommand<CommonEntry> CopyCommand { get; set; }
         public DelegateCommand<CommonEntry> DefaultActionCommand { get; set; }
         public DelegateCommand<CommonEntry> SecondActionCommand { get; set; }
-        public DelegateCommand ActivateCommand { get; set; }
         public DelegateCommand<EntryAction> ActionCommand { get; set; }
 
         // manual delegate 
@@ -95,51 +80,29 @@ namespace Toys.Client.ViewModels
         // c'tor
         public MainWindowViewModel()
         {
-            settingWatcher.Changed += ReloadConfig;
-            ReloadConfig(null, null);
+            ActivateCommand = new DelegateCommand(new Action(() =>
+            {
+                ActivateMainWindowAction?.Invoke();
+            }));
+            ExitCommand = new DelegateCommand(new Action(() =>
+            {
+                Debug.Print("Exit");
+            }));
+            ChangeSettingCommand = new DelegateCommand(new Action(() =>
+            {
+                sm.OpenSettingFile();
+            }));
+            CopyCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>((CommonEntry entry) =>
+            {
+                Clipboard.SetText(entry.Display);
+            }));
 
-            ChangeSettingCommand = new DelegateCommand(new Action(ExecChangeSetting));
-            ExitCommand = new DelegateCommand(new Action(ExecExit));
-            CopyCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecCopy));
             DefaultActionCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecDefaultAction));
             SecondActionCommand = new DelegateCommand<CommonEntry>(new Action<CommonEntry>(ExecSecondAction));
-            ActivateCommand = new DelegateCommand(new Action(ExecActivate));
             ActionCommand = new DelegateCommand<EntryAction>(new Action<EntryAction>(ExecAction));
         }
 
-        // functions
-        private void ReloadConfig(object source, FileSystemEventArgs e)
-        {
-            Config = SettingServices.Load(settingFilename);
-            if (Config != null)
-            {
-                calculator = new NaiveCalculateService(Config.CalculateConfig);
-                translator = new YoudaoTranslateService(Config.TranslateConfig);
-                if (OperatingSystem.IsWindows())
-                {
-                    searcher = new WindowsSearchService(Config.SearchConfig);
-                }
-            }
-        }
-
-        private void ExecChangeSetting()
-        {
-            Process fileopener = new Process();
-            fileopener.StartInfo.FileName = "explorer";
-            fileopener.StartInfo.Arguments = "\"" + settingFilename + "\"";
-            fileopener.Start();
-        }
-
-        private void ExecExit()
-        {
-            Debug.Print("Exit");
-        }
-
-        private void ExecCopy(CommonEntry entry)
-        {
-            Clipboard.SetText(entry.Display);
-        }
-
+        // command functions
         private void ExecDefaultAction(CommonEntry entry)
         {
             ExecAction(entry.ActionList[entry.DefaultActionIdx]);
@@ -148,11 +111,6 @@ namespace Toys.Client.ViewModels
         private void ExecSecondAction(CommonEntry entry)
         {
             ExecAction(entry.ActionList[entry.SecondActionIdx]);
-        }
-
-        private void ExecActivate()
-        {
-            ActivateMainWindowAction?.Invoke();
         }
 
         private void ExecAction(EntryAction action)
@@ -168,45 +126,12 @@ namespace Toys.Client.ViewModels
         private void Query(object sender, DoWorkEventArgs e)
         {
             string content = (string)e.Argument;
-            List<CommonEntry> resultList = new List<CommonEntry>();
             BackgroundWorker worker = sender as BackgroundWorker;
             while (!worker.CancellationPending)
             {
                 if (content != string.Empty)
                 {
-                    if (searcher != null)
-                    {
-                        foreach (SearchEntry entry in searcher.Search(content))
-                        {
-                            resultList.Add(entry);
-                        }
-                    }
-                    if ("0123456789-.(（".Contains(content[0]))
-                    {
-                        if (content[0] == '.')
-                        {
-                            content = "0" + content;
-                        }
-                        content = content.Replace('（', '(').Replace('）', ')');
-                        content = content.Replace('、', '/').Replace('《', '<');
-                        content = content.Replace("**", "^").Replace("<<", "*2^");
-                        foreach (CalculateEntry entry in calculator.Calculate(content))
-                        {
-                            resultList.Add(entry);
-                        }
-                    }
-                    else
-                    {
-                        var res = translator.Translate(content);
-                        if (res != null)
-                        {
-                            foreach (TranslateEntry entry in res)
-                            {
-                                resultList.Add(entry);
-                            }
-                        }
-                    }
-                    e.Result = resultList;
+                    e.Result = sm.Search(content);
                 }
                 break;
             }
@@ -228,10 +153,10 @@ namespace Toys.Client.ViewModels
                 switch (item.Type)
                 {
                     case "CalculateEntry":
-                        item.ImageData = new BitmapImage(new Uri(@"Assets\calculator.ico", UriKind.Relative));
+                        item.ImageData = new BitmapImage(new Uri(@"..\Assets\calculator.ico", UriKind.Relative));
                         break;
                     case "TranslateEntry":
-                        item.ImageData = new BitmapImage(new Uri(@"Assets\youdao.ico", UriKind.Relative));
+                        item.ImageData = new BitmapImage(new Uri(@"..\Assets\youdao.ico", UriKind.Relative));
                         break;
                     case "SearchEntry":
                         var sysicon = Icon.ExtractAssociatedIcon(((SearchEntry)item).FullPath);

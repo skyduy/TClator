@@ -97,7 +97,7 @@ namespace Toys.Client.Services
 
         public List<TranslateEntry> Translate(string src)
         {
-            if (!Setting.Enable) return default;
+            if (!Setting.Enable) return new List<TranslateEntry>();
 
             // query cache
             List<TranslateEntry> answers = cache.Get(src);
@@ -115,7 +115,7 @@ namespace Toys.Client.Services
             }
             catch (Exception e)
             {
-                answers.Add(new TranslateEntry("[请求超时]" + e.Message) { Src = src });
+                answers.Add(new TranslateEntry(src, "[请求超时]" + e.Message));
                 return answers;
             }
             if (data == string.Empty)
@@ -136,10 +136,10 @@ namespace Toys.Client.Services
                     }
                     var translations = o.Translation.ToArray();
                     string first = phonetic + translations[0];
-                    answers.Add(new TranslateEntry(first) { Src = src });
+                    answers.Add(new TranslateEntry(src, first));
                     for (int i = 1; i < translations.Length; i++)
                     {
-                        answers.Add(new TranslateEntry(translations[i]) { Src = src });
+                        answers.Add(new TranslateEntry(src, translations[i]));
                     }
                 }
 
@@ -147,7 +147,7 @@ namespace Toys.Client.Services
                 {
                     foreach (string item in o.Basic.Explains.ToArray())
                     {
-                        answers.Add(new TranslateEntry(item) { Src = src });
+                        answers.Add(new TranslateEntry(src, item));
                     }
                 }
 
@@ -157,7 +157,7 @@ namespace Toys.Client.Services
                     {
                         if (t.Key != src)
                         {
-                            answers.Add(new TranslateEntry(t.Key + ": " + string.Join(" | ", t.Value.ToArray())) { Src = src });
+                            answers.Add(new TranslateEntry(src, t.Key + ": " + string.Join(" | ", t.Value.ToArray())));
                         }
                     }
                 }
@@ -171,7 +171,7 @@ namespace Toys.Client.Services
                     202 => "[有道智云] 签名检验失败",
                     _ => "[有道智云] 错误代码" + o.ErrorCode,
                 };
-                answers.Add(new TranslateEntry(error) { Src = src });
+                answers.Add(new TranslateEntry(src, error));
             }
             return answers;
         }

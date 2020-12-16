@@ -1,5 +1,4 @@
 ﻿using IWshRuntimeLibrary;
-using Microsoft.WindowsAPICodePack.Shell;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -44,7 +43,8 @@ namespace Toys.Client.Services
                 var watcher = new FileSystemWatcher()
                 {
                     Path = fn,
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName
+                                 | NotifyFilters.DirectoryName | NotifyFilters.Attributes,
                     EnableRaisingEvents = true,
                     IncludeSubdirectories = true
                 };
@@ -60,7 +60,7 @@ namespace Toys.Client.Services
                 watchers.Add(watcher);
             }
 
-            searcher = new WindowsSearcher(extensions, setting.SearchPaths);
+            searcher = new WindowsSearcher(extensions, setting.SearchPaths, setting.MaxCount);
         }
 
         public List<SearchEntry> Search(string keyword)
@@ -91,12 +91,14 @@ namespace Toys.Client.Services
 
     class WindowsSearcher
     {
+        readonly int maxCount = 7;
         readonly WshShell shell = new WshShell();
         readonly Dictionary<string, string> lnk2real = new Dictionary<string, string>();
         readonly Dictionary<string, SearchEntry> refCount = new Dictionary<string, SearchEntry>();
 
-        public WindowsSearcher(List<string> extensions, List<string> folders)
+        public WindowsSearcher(List<string> extensions, List<string> folders, int limit)
         {
+            maxCount = limit;
             Task.Run(() => Init(ref extensions, ref folders));
         }
 
@@ -156,19 +158,20 @@ namespace Toys.Client.Services
 
         private void GetAllFiles(string folder, string extension, ref List<string> allFiles)
         {
-            foreach (string file in Directory.GetFiles(folder, extension))
+            DirectoryInfo dir = new DirectoryInfo(folder);
+            foreach (FileInfo f in dir.GetFiles(extension).Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden)))
             {
-                allFiles.Add(file);
+                allFiles.Add(f.FullName);
             }
-            foreach (string subDir in Directory.GetDirectories(folder))
+            foreach (DirectoryInfo d in dir.GetDirectories().Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden)))
             {
                 try
                 {
-                    GetAllFiles(subDir, extension, ref allFiles);
+                    GetAllFiles(d.FullName, extension, ref allFiles);
                 }
                 catch
                 {
-                    Debug.Print("Can not access dir {0}", subDir);
+                    Debug.Print("Can not access dir {0}", d.FullName);
                 }
             }
         }
@@ -209,6 +212,7 @@ namespace Toys.Client.Services
 
         public void ChangeFile(string fullPath)
         {
+            // TODO: 有潜在 BUG
             fullPath = fullPath.Replace("/", "\\");
             Debug.Print("change file {0}", fullPath);
             if (fullPath.EndsWith(".lnk"))
@@ -225,6 +229,18 @@ namespace Toys.Client.Services
                 {
                     lnk2real[fullPath] = newTarget;
                     Increase(newTarget, alias);
+                }
+            }
+            else
+            {
+                FileInfo f = new FileInfo(fullPath);
+                if (f.Attributes.HasFlag(FileAttributes.Hidden))
+                {
+                    DeleteFile(fullPath);
+                }
+                else if (!lnk2real.ContainsKey(fullPath))
+                {
+                    AddFile(fullPath);
                 }
             }
         }
@@ -296,7 +312,6 @@ namespace Toys.Client.Services
 
         public List<SearchEntry> Search(string word)
         {
-            int maxCount = 7;
             word = word.ToLower();
             List<SearchEntry> res = new List<SearchEntry>();
             var kvList = new List<(SearchEntry, double)> { };

@@ -2,10 +2,9 @@
 using System.Windows;
 using System.Windows.Input;
 using Toys.Client.ViewModels;
-using Toys.Client.Views;
 using System.Windows.Controls;
 
-namespace Toys.Client
+namespace Toys.Client.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -129,6 +128,28 @@ namespace Toys.Client
             if (e.ChangedButton == MouseButton.Left)
             {
                 DragMove();
+            }
+        }
+
+        private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var tb = (TextBox)sender;
+            using (tb.DeclareChangeBlock())
+            {
+                foreach (var c in e.Changes)
+                {
+                    if (c.AddedLength == 0) continue;
+                    tb.Select(c.Offset, c.AddedLength);
+                    if (tb.SelectedText.Contains(Environment.NewLine))
+                    {
+                        tb.SelectedText = tb.SelectedText.Replace(Environment.NewLine, " ");
+                    }
+                    if (tb.SelectedText.Contains('\n'))
+                    {
+                        tb.SelectedText = tb.SelectedText.Replace('\n', ' ');
+                    }
+                    tb.Select(c.Offset + c.AddedLength, 0);
+                }
             }
         }
     }

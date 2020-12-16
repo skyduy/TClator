@@ -27,10 +27,7 @@ namespace Toys.Client.Services
                 try
                 {
                     question = ConvertInfixToPostfix(question);
-                    ans.Add(new CalculateEntry(EvaluatePostfixExpression(question).ToString())
-                    {
-                        Src = question
-                    });
+                    ans.Add(new CalculateEntry(EvaluatePostfixExpression(question).ToString()));
                 }
                 catch (Exception)
                 {
@@ -41,6 +38,15 @@ namespace Toys.Client.Services
 
         private string Preprocess(string input)
         {
+            // preprocess
+            if (input[0] == '.')
+            {
+                input = "0" + input;
+            }
+            input = input.Replace('（', '(').Replace('）', ')');
+            input = input.Replace('、', '/').Replace('《', '<');
+            input = input.Replace("**", "^").Replace("<<", "*2^");
+
             // match regex
             if (!inputValidator.IsMatch(input)) return string.Empty;
 

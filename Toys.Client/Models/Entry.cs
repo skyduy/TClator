@@ -17,65 +17,61 @@ namespace Toys.Client.Models
 
     class CommonEntry
     {
-        public string Src { get; set; }
-
-        public string Type => GetType().Name;
-        public BitmapSource ImageData { get; set; }
+        public string Src { get; set; } = "";
         public string Display { get; set; } = "";
+        public BitmapSource ImageData { get; set; }
 
+        public List<EntryAction> ActionList { get; set; } = new List<EntryAction>();
         public int DefaultActionIdx;
         public int SecondActionIdx;
-        public List<EntryAction> ActionList { get; set; } = new List<EntryAction>();
+
+        public string Type => GetType().Name;
     }
 
     class CalculateEntry : CommonEntry
     {
         public CalculateEntry(string display)
         {
+            Display = display;
+
             ActionList.Add(new EntryAction()
             {
                 Name = "Copy",
-                Run = new Action(Copy)
+                Run = new Action(() =>
+                {
+                    Clipboard.SetText(Display);
+                })
             });
-
-            Display = display;
             DefaultActionIdx = 0;
             DefaultActionIdx = 0;
-        }
-
-        public void Copy()
-        {
-            Clipboard.SetText(Display);
         }
     }
 
     class TranslateEntry : CommonEntry
     {
-        public TranslateEntry(string display)
+        public TranslateEntry(string src, string display)
         {
+            Src = src;
+            Display = display;
+
             ActionList.Add(new EntryAction()
             {
                 Name = "Copy",
-                Run = new Action(Copy)
+                Run = new Action(() =>
+                {
+                    Clipboard.SetText(Display);
+                })
             });
             ActionList.Add(new EntryAction()
             {
                 Name = "Detail",
-                Detail = new Func<Tuple<string, string>>(Detail)
+                Detail = new Func<Tuple<string, string>>(() =>
+                {
+                    return new Tuple<string, string>(Src, Display);
+                })
             });
-            Display = display;
             DefaultActionIdx = 1;
             SecondActionIdx = 1;
-        }
-
-        public void Copy()
-        {
-            Clipboard.SetText(Display);
-        }
-
-        public Tuple<string, string> Detail()
-        {
-            return new Tuple<string, string>(Src, Display);
         }
     }
 
@@ -88,22 +84,6 @@ namespace Toys.Client.Models
         public SearchEntry(string fullPath, string alias)
         {
             fullPath = fullPath.Replace('/', '\\');
-            ActionList.Add(new EntryAction()
-            {
-                Name = "Run",
-                Run = new Action(Run)
-            });
-            ActionList.Add(new EntryAction()
-            {
-                Name = "Copy Path",
-                Run = new Action(CopyPath)
-            });
-            ActionList.Add(new EntryAction()
-            {
-                Name = "Show in Explorer",
-                Run = new Action(ShowInExplorer)
-            });
-
             Count = 1;
             FullPath = fullPath;
             string filename = Path.GetFileNameWithoutExtension(FullPath);
@@ -118,31 +98,40 @@ namespace Toys.Client.Models
                 Display = filename;
             }
 
+            ActionList.Add(new EntryAction()
+            {
+                Name = "Run",
+                Run = new Action(() =>
+                {
+                    Process fileopener = new Process();
+                    fileopener.StartInfo.FileName = "explorer";
+                    fileopener.StartInfo.Arguments = "\"" + FullPath + "\"";
+                    fileopener.Start();
+                    SearchHistory.Increase(FullPath);
+                })
+            });
+            ActionList.Add(new EntryAction()
+            {
+                Name = "Copy Path",
+                Run = new Action(() =>
+                {
+                    Clipboard.SetText(FullPath);
+                })
+            });
+            ActionList.Add(new EntryAction()
+            {
+                Name = "Show in Explorer",
+                Run = new Action(() =>
+                {
+                    string folder = Path.GetDirectoryName(FullPath);
+                    Process fileopener = new Process();
+                    fileopener.StartInfo.FileName = "explorer";
+                    fileopener.StartInfo.Arguments = "\"" + folder + "\"";
+                    fileopener.Start();
+                })
+            });
             DefaultActionIdx = 0;
             SecondActionIdx = 2;
-        }
-
-        public void Run()
-        {
-            Process fileopener = new Process();
-            fileopener.StartInfo.FileName = "explorer";
-            fileopener.StartInfo.Arguments = "\"" + FullPath + "\"";
-            fileopener.Start();
-            SearchHistory.Increase(FullPath);
-        }
-
-        public void CopyPath()
-        {
-            Clipboard.SetText(FullPath);
-        }
-
-        public void ShowInExplorer()
-        {
-            string folder = Path.GetDirectoryName(FullPath);
-            Process fileopener = new Process();
-            fileopener.StartInfo.FileName = "explorer";
-            fileopener.StartInfo.Arguments = "\"" + folder + "\"";
-            fileopener.Start();
         }
     }
 }

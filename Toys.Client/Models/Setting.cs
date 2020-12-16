@@ -20,6 +20,7 @@ namespace Toys.Client.Models
     {
         public List<string> SearchPaths { get; set; } = new List<string>();
         public List<string> Extensions { get; set; } = new List<string>();
+        public int MaxCount { get; set; } = 5;
     }
 
     class TranslateSetting : CommonSetting

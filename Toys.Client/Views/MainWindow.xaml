@@ -1,5 +1,5 @@
 ﻿<Window
-    x:Class="Toys.Client.MainWindow"
+    x:Class="Toys.Client.Views.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -36,7 +36,7 @@
         <Grid Margin="8">
             <tb:TaskbarIcon
                 x:Name="Toys"
-                IconSource="favicon.ico"
+                IconSource="../Assets/favicon.ico"
                 MenuActivation="RightClick"
                 ToolTipText="Toys"
                 TrayMouseDoubleClick="Toys_TrayMouseDoubleClick"
@@ -59,8 +59,10 @@
                     x:Name="InputBox"
                     Height="40"
                     VerticalContentAlignment="Center"
+                    AcceptsReturn="True"
                     FontSize="18"
-                    Text="{Binding CurrentText, UpdateSourceTrigger=PropertyChanged, Delay=200}" />
+                    Text="{Binding CurrentText, UpdateSourceTrigger=PropertyChanged, Delay=200}"
+                    TextChanged="InputBox_TextChanged" />
 
                 <ListBox
                     x:Name="ResultList"
