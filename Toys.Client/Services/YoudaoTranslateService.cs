@@ -140,6 +140,11 @@ namespace Toys.Client.Services
                     for (int i = 1; i < translations.Length; i++)
                     {
                         answers.Add(new TranslateEntry(src, translations[i]));
+                        if (answers.Count >= Setting.MaxCount)
+                        {
+                            cache.Add(src, answers);
+                            return answers;
+                        }
                     }
                 }
 
@@ -148,6 +153,11 @@ namespace Toys.Client.Services
                     foreach (string item in o.Basic.Explains.ToArray())
                     {
                         answers.Add(new TranslateEntry(src, item));
+                        if (answers.Count >= Setting.MaxCount)
+                        {
+                            cache.Add(src, answers);
+                            return answers;
+                        }
                     }
                 }
 
@@ -158,6 +168,11 @@ namespace Toys.Client.Services
                         if (t.Key != src)
                         {
                             answers.Add(new TranslateEntry(src, t.Key + ": " + string.Join(" | ", t.Value.ToArray())));
+                            if (answers.Count >= Setting.MaxCount)
+                            {
+                                cache.Add(src, answers);
+                                return answers;
+                            }
                         }
                     }
                 }

@@ -150,22 +150,7 @@ namespace Toys.Client.ViewModels
 
             foreach (CommonEntry item in (List<CommonEntry>)e.Result)
             {
-                switch (item.Type)
-                {
-                    case "CalculateEntry":
-                        item.ImageData = new BitmapImage(new Uri(@"..\Assets\calculator.ico", UriKind.Relative));
-                        break;
-                    case "TranslateEntry":
-                        item.ImageData = new BitmapImage(new Uri(@"..\Assets\youdao.ico", UriKind.Relative));
-                        break;
-                    case "SearchEntry":
-                        var sysicon = Icon.ExtractAssociatedIcon(((SearchEntry)item).FullPath);
-                        var bmpSrc = Imaging.CreateBitmapSourceFromHIcon(
-                                    sysicon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-                        sysicon.Dispose();
-                        item.ImageData = bmpSrc;
-                        break;
-                }
+                item.UISyncTask();
                 ResultList.Add(item);
             }
         }

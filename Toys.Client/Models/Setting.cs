@@ -18,15 +18,23 @@ namespace Toys.Client.Models
 
     class SearchSetting : CommonSetting
     {
-        public List<string> SearchPaths { get; set; } = new List<string>();
+        public class SeachPath
+        {
+            public string Path { get; set; }
+            public int MaxDepth { get; set; }
+        }
+
+        public List<SeachPath> SearchPaths { get; set; } = new List<SeachPath>();
         public List<string> Extensions { get; set; } = new List<string>();
         public int MaxCount { get; set; } = 5;
+        public bool PrivacyMode { get; set; } = true;
     }
 
     class TranslateSetting : CommonSetting
     {
         public string YoudaoAppKey { get; set; } = "";
         public string YoudaoAppSecret { get; set; } = "";
+        public int MaxCount { get; set; } = 5;
     }
 
     class CalculateSetting : CommonSetting

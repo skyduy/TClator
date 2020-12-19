@@ -67,7 +67,14 @@ namespace Toys.Client.Services
             {
                 calculator = new NaiveCalculateService(config.CalculateConfig);
                 translator = new YoudaoTranslateService(config.TranslateConfig);
-                searcher = new WindowsSearchService(config.SearchConfig);
+                if (searcher == null)
+                {
+                    searcher = new WindowsSearchService(config.SearchConfig);
+                }
+                else
+                {
+                    searcher.Reload(config.SearchConfig);
+                }
             }
         }
     }
