@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Toys</AssemblyName>
     <ApplicationIcon>Assets/favicon.ico</ApplicationIcon>
-    <Version>2.2.0</Version>
+    <Version>2.3.0-beta</Version>
   </PropertyGroup>
 
   <ItemGroup>
