@@ -27,7 +27,6 @@ namespace Toys.Client.Models
         public List<SeachPath> SearchPaths { get; set; } = new List<SeachPath>();
         public List<string> Extensions { get; set; } = new List<string>();
         public int MaxCount { get; set; } = 5;
-        public bool PrivacyMode { get; set; } = true;
     }
 
     class TranslateSetting : CommonSetting
@@ -44,6 +43,6 @@ namespace Toys.Client.Models
 
     class CommonSetting
     {
-        public bool Enable { get; set; } = true;
+        public bool Enable { get; set; } = false;
     }
 }

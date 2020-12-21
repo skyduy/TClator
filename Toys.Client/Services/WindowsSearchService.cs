@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
-using IWshRuntimeLibrary;
 
 using Toys.Client.Models;
 
@@ -17,8 +16,8 @@ namespace Toys.Client.Services
     {
         private bool enable;
         private readonly Task t;
-        private readonly FileForest index;
-        private static readonly int timerInterval = 3 * 1000;
+        private readonly FileTree tree;
+        private static readonly int timerInterval = 5 * 1000;
         private static Timer _timer;
 
         public WindowsSearchService(SearchSetting setting)
@@ -32,7 +31,7 @@ namespace Toys.Client.Services
 
             SearchHistory.Load();
 
-            index = new FileForest(setting);
+            tree = new FileTree(setting);
             _timer = new Timer(timerInterval)
             {
                 AutoReset = true,
@@ -48,20 +47,20 @@ namespace Toys.Client.Services
         {
 #if DEBUG
             //System.Threading.Thread.Sleep(10000);
-            if (e is null)
-            {
-                Debug.Print("Create index at {0:HH:mm:ss.fff}", DateTime.Now);
-            }
-            else
-            {
-                Debug.Print("Update index at {0:HH:mm:ss.fff}", e.SignalTime);
-            }
+            //if (e is null)
+            //{
+            //    Debug.Print("Create index at {0:HH:mm:ss.fff}", DateTime.Now);
+            //}
+            //else
+            //{
+            //    Debug.Print("Update index at {0:HH:mm:ss.fff}", e.SignalTime);
+            //}
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 #endif
             _timer.Stop();
-            index.Rescan();
+            tree.Rescan();
             _timer.Start();
 #if DEBUG
             stopwatch.Stop();
@@ -72,6 +71,7 @@ namespace Toys.Client.Services
 
         public void Reload(SearchSetting setting)
         {
+            // TODO immediately reload
             _timer.Stop();
             if (!setting.Enable || setting.SearchPaths.Count == 0)
             {
@@ -79,147 +79,255 @@ namespace Toys.Client.Services
                 return;
             }
             enable = true;
-            Task.Run(() => index.Reload(setting));
+            Task.Run(() => tree.Reload(setting));
             _timer.Start();
         }
 
         public List<SearchEntry> Search(string word)
         {
-            List<SearchEntry> res = new List<SearchEntry>();
             if (!enable)
             {
-                return res;
+                return new List<SearchEntry>();
             }
 
             if (!t.IsCompleted)
             {
-                res.Add(new SearchEntry { Display = "搜索服务创建索引中..." });
-                return res;
+                return new List<SearchEntry>() { new SearchEntry { Display = "搜索服务创建索引中..." } };
             }
 
             word = word.ToLower();
-            foreach (var node in index.Search(word))
-            {
-                res.Add(new SearchEntry(node.FullPath, node.Display));
-            }
-            return res;
+            return tree.Search(word);
         }
-
     }
 
-    enum FileType
+    class FileTree
     {
-        File,
-        Directory,
-        Link,
-    }
-
-    class PathNode
-    {
-        public string FileName;
-        public string FullPath;
-        public FileType Type;
-        public DateTime LastWriteTime;
-        public int RemainDepth;
-        public string Display;
-        public PathNode Parent;
-        public Dictionary<string, PathNode> Children;
-
-        private List<string> Nicknames;
-        private List<string> Aliases;
-
-        public PathNode(string fullPath)
+        class PathNode
         {
-            FullPath = fullPath;
-            Display = FileHelper.FileName(fullPath);
-            Nicknames = new List<string>() { Display.ToLower() };
-            Debug.Print("Created: {0}", FullPath);
-        }
-
-        public void AddLnk(string path)
-        {
-            if (Aliases == null)
+            class Index
             {
-                Aliases = new List<string>() { path };
-                Display = FileHelper.FileName(path);
-                Nicknames.Add(Display.ToLower());
-            }
-            else
-            {
-                Aliases.Add(path);
-                Display = FileHelper.FileName(FullPath);
-                Nicknames.Add(FileHelper.FileName(path).ToLower());
-            }
-        }
-
-        public void RemoveLnk(string path)
-        {
-            Aliases.Remove(path);
-            Nicknames.Remove(FileHelper.FileName(path).ToLower());
-
-            if (Aliases.Count == 0)
-            {
-                Display = FileHelper.FileName(FullPath);
-            }
-            else if (Aliases.Count == 1)
-            {
-                Display = FileHelper.FileName(Aliases[0]);
-            }
-        }
-
-        public void PruneLnk()
-        {
-            List<string> rms = new List<string>();
-            foreach (string path in Aliases)
-            {
-                if (FileHelper.LnkFile(path) != FullPath)
+                readonly Dictionary<string, List<PathNode>> map = new Dictionary<string, List<PathNode>>();
+                public void Add(PathNode node)
                 {
-                    rms.Add(path);
+                    string key = FileHelper.FileName(node.Path).ToLower();
+                    if (!map.ContainsKey(key))
+                    {
+                        map.Add(key, new List<PathNode>() { node });
+                    }
+                    else
+                    {
+                        map[key].Add(node);
+                    }
+                }
+
+                public void Remove(PathNode node)
+                {
+                    if (node is null)
+                    {
+                        return;
+                    }
+
+                    if (node.Children != null)
+                    {
+                        foreach (var child in node.Children)
+                        {
+                            Remove(child);
+                        }
+                    }
+                    string key = FileHelper.FileName(node.Path).ToLower();
+                    for (int i = map[key].Count - 1; i >= 0; i--)
+                    {
+                        if (map[key][i].Path == node.Path)
+                        {
+                            map[key].RemoveAt(i);
+                        }
+                    }
+                }
+
+                public List<SearchEntry> Search(string word, int maxCount)
+                {
+                    double length = 1.0 * word.Length;
+                    var kvList = new List<(string, double)> { };
+                    foreach (string name in map.Keys)
+                    {
+                        if (name.Contains(word))
+                        {
+                            double baseScore = length / name.Length;
+                            foreach (PathNode node in map[name])
+                            {
+                                string path = node.Path;
+                                double score = baseScore + SearchHistory.Get(path);
+                                if (File.Exists(path))
+                                {
+                                    score += 0.8;
+                                }
+
+                                if (kvList.Count == 0)
+                                {
+                                    kvList.Add((path, score));
+                                }
+                                else if (kvList.Count < maxCount)
+                                {
+                                    int idx = kvList.Count - 1;
+                                    if (kvList[idx].Item2 >= score)
+                                    {
+                                        kvList.Add((path, score));
+                                    }
+                                    else
+                                    {
+                                        kvList.Add(kvList[^1]);
+                                        idx--;
+                                        while (idx >= 0 && kvList[idx].Item2 < score)
+                                        {
+                                            kvList[idx + 1] = kvList[idx];
+                                            idx--;
+                                        }
+                                        kvList[idx + 1] = (path, score);
+                                    }
+                                }
+                                else if (kvList[maxCount - 1].Item2 < score)
+                                {
+                                    int idx = maxCount - 2;
+                                    while (idx >= 0 && kvList[idx].Item2 < score)
+                                    {
+                                        kvList[idx + 1] = kvList[idx];
+                                        idx--;
+                                    }
+                                    kvList[idx + 1] = (path, score);
+                                }
+                            }
+                        }
+                    }
+
+                    List<SearchEntry> res = new List<SearchEntry>();
+                    foreach (var i in kvList)
+                    {
+                        res.Add(new SearchEntry(i.Item1, FileHelper.FileName(i.Item1)));
+                    }
+                    return res;
                 }
             }
-            foreach (string path in rms)
-            {
-                RemoveLnk(path);
-            }
-        }
 
-        public bool IsAlone()
-        {
-            return Aliases == null || Aliases.Count == 0;
-        }
+            private static readonly Index index = new Index();
 
-        public double MatchScore(string word)
-        {
-            double score = 0;
-            foreach (string t in Nicknames)
+            public string Path;
+            public DateTime LastWriteTime;
+            private List<PathNode> Children;
+
+            public PathNode(string fullPath)
             {
-                if (t.Contains(word))
+                Path = fullPath;
+                if (Path != "")
                 {
-                    score = Math.Max(score, 1.0 * word.Length / t.Length);
+                    Debug.Print("Add: {0}", Path);
+                    LastWriteTime = File.GetLastWriteTime(fullPath);
+                    index.Add(this);
                 }
             }
 
-            return score;
+            public void AddChild(string path)
+            {
+                AddChild(new PathNode(path));
+            }
+
+            public void AddChild(PathNode node)
+            {
+                if (node is null)
+                {
+                    return;
+                }
+                if (Children is null)
+                {
+                    Children = new List<PathNode>();
+                }
+                Children.Add(node);
+            }
+
+            public bool TryAddChild(string path)
+            {
+                if (Children is null)
+                {
+                    AddChild(path);
+                    return true;
+                }
+                for (int i = 0; i < Children.Count; i++)
+                {
+                    if (Children[i].Path == path)
+                    {
+                        return false;
+                    }
+                }
+                AddChild(path);
+                return true;
+            }
+
+            public int GetChildIdx(string path)
+            {
+                if (Children is null)
+                {
+                    return -1;
+                }
+                for (int i = 0; i < Children.Count; i++)
+                {
+                    if (Children[i].Path == path)
+                    {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+
+            public PathNode GetChild(int idx)
+            {
+                return Children[idx];
+            }
+
+            public List<PathNode> ListChildren()
+            {
+                if (Children is null)
+                {
+                    return new List<PathNode>();
+                }
+                return Children;
+            }
+
+            public void Prune(List<string> keep)
+            {
+                for (int i = Children.Count - 1; i >= 0; i--)
+                {
+                    if (!keep.Contains(Children[i].Path))
+                    {
+                        index.Remove(Children[i]);
+                        Children.RemoveAt(i);
+                    }
+                }
+            }
+
+            public void ReplaceChild(int idx, PathNode node)
+            {
+                index.Remove(Children[idx]);
+                Children[idx] = node;
+            }
+
+            public static List<SearchEntry> Search(string word, int maxCount)
+            {
+                return index.Search(word, maxCount);
+            }
+
+            ~PathNode()
+            {
+                Debug.Print("Destroy: {0}", Path);
+            }
         }
 
-        ~PathNode()
-        {
-            Debug.Print("Destroy: {0}", FullPath);
-        }
-    }
-
-    class FileForest
-    {
         List<string> Extensions;
         int MaxCount;
-        bool PrivacyMode;
         List<SearchSetting.SeachPath> SearchPaths;
-        readonly Dictionary<string, PathNode> roots = new Dictionary<string, PathNode>();
-        readonly Dictionary<string, PathNode> island = new Dictionary<string, PathNode>();
+        readonly Dictionary<string, int> PathOldDepth = new Dictionary<string, int>();
 
-        readonly HashSet<PathNode> linked = new HashSet<PathNode>();
+        readonly PathNode root = new PathNode("");
 
-        public FileForest(SearchSetting setting)
+        public FileTree(SearchSetting setting)
         {
             Reload(setting);
         }
@@ -233,7 +341,6 @@ namespace Toys.Client.Services
             }
 
             MaxCount = setting.MaxCount;
-            PrivacyMode = setting.PrivacyMode;
 
             SearchPaths = new List<SearchSetting.SeachPath>();
             foreach (var item in setting.SearchPaths.OrderByDescending(i => i.Path).ToList())
@@ -247,491 +354,114 @@ namespace Toys.Client.Services
                     SearchPaths.Add(item);
                 }
             }
+            Rescan();
         }
 
         public void Rescan()
         {
-            linked.Clear();
-
-            List<string> exists = new List<string>();
-            List<string> dropKeys = new List<string>();
+            List<string> keep = new List<string>();
             foreach (SearchSetting.SeachPath item in SearchPaths)
             {
                 // 确定是文件夹
                 string path = item.Path;
-                if (FileHelper.LnkFile(item.Path) is not null)
-                {
-                    if (!Directory.Exists(path)) continue;
-                    path = FileHelper.LnkFile(item.Path);
-                }
+                int depth = item.MaxDepth;
 
-                exists.Add(path);
-                if (roots.ContainsKey(path))
+                if (!PathOldDepth.ContainsKey(path))
                 {
-                    Update(roots[path], item.MaxDepth);
+                    root.AddChild(Create(path, depth));
                 }
                 else
                 {
-                    PathNode root = Create(path, item.MaxDepth);
-                    root.FileName = root.FullPath;
-                    roots[path] = root;
-                }
-            }
-
-            foreach (string key in roots.Keys)
-            {
-                if (!exists.Contains(key))
-                {
-                    dropKeys.Add(key);
-                }
-            }
-            foreach (string key in dropKeys)
-            {
-                roots.Remove(key);
-            }
-
-            foreach (PathNode node in linked)
-            {
-                node.PruneLnk();
-            }
-            linked.Clear();
-        }
-
-        private PathNode Create(string path, int remainDepth)
-        {
-            // 递归检索当前目录
-            if (FileHelper.IsFile(path))
-            {
-                if (FileHelper.LnkFile(path) is not null)
-                {
-                    string targetPath = FileHelper.LnkFile(path);
-                    PathNode targetNode = Find(targetPath);
-                    if (targetNode == null)
+                    int idx = root.GetChildIdx(path);
+                    if (PathOldDepth[path] == depth)
                     {
-                        if (!island.ContainsKey(targetPath))
-                        {
-                            island[targetPath] = Create(targetPath, remainDepth);
-                        }
-                        targetNode = island[targetPath];
-                    }
-                    targetNode.AddLnk(path);
-
-                    linked.Add(targetNode);
-                    return new PathNode(path)
-                    {
-                        FileName = Path.GetFileName(path),
-                        Type = FileType.Link,
-                        LastWriteTime = System.IO.File.GetLastWriteTime(path),
-                        Children = new Dictionary<string, PathNode> { { "target", targetNode } },
-                    };
-                }
-                else
-                {
-                    return new PathNode(path)
-                    {
-                        FileName = Path.GetFileName(path),
-                        Type = FileType.File,
-                    };
-                }
-            }
-            else
-            {
-                PathNode node = new PathNode(path)
-                {
-                    FileName = Path.GetFileName(path),
-                    Type = FileType.Directory,
-                    LastWriteTime = Directory.GetLastWriteTime(path),
-                    RemainDepth = remainDepth,
-                    Children = new Dictionary<string, PathNode>(),
-                };
-
-                // 仍可继续递归扫描文件夹
-                if (node.RemainDepth > 0)
-                {
-                    foreach (string fn in FileHelper.ListAll(path, Extensions))
-                    {
-                        if (island.ContainsKey(fn))  // 孤岛不再孤单
-                        {
-                            PathNode child = island[fn];
-                            island.Remove(fn);
-                            child.Parent = node;
-                            node.Children[fn] = child;
-                        }
-                        else
-                        {
-                            if (FileHelper.IsFile(fn))
-                            {
-                                PathNode child = Create(fn, node.RemainDepth - 1);
-                                child.Parent = node;
-                                node.Children[fn] = child;
-                            }
-                            else
-                            {   // 文件夹特殊对待，因为可能被写到配置目录中
-                                PathNode child = Find(fn);
-                                if (child == null)
-                                {
-                                    child = Create(fn, node.RemainDepth - 1);
-                                }
-                                child.Parent = node;
-                                node.Children[fn] = child;
-                            }
-                        }
-                    }
-                }
-                return node;
-            }
-        }
-
-        private void Delete(PathNode item)
-        {
-            switch (item.Type)
-            {
-                case FileType.File:
-                case FileType.Directory:
-                    if (island.ContainsKey(item.FullPath))
-                    {
-                        island.Remove(item.FullPath);
+                        Update(root.GetChild(idx), depth);
                     }
                     else
                     {
-                        if (item.Parent != null)
-                        {
-                            item.Parent.Children.Remove(item.FullPath);
-                        }
+                        root.ReplaceChild(idx, Create(path, depth, true));
                     }
-                    break;
-                case FileType.Link:
-                    item.Parent.Children.Remove(item.FullPath);
-                    PathNode targetNode = item.Children["target"];
-                    targetNode.RemoveLnk(item.FullPath);
+                }
+                PathOldDepth[path] = depth;
+                keep.Add(path);
+            }
 
-                    if (targetNode.IsAlone() && island.ContainsKey(targetNode.FullPath))
-                    {
-                        island.Remove(targetNode.FullPath);
-                    }
-                    break;
-                default:
-                    break;
+            root.Prune(keep);
+            List<string> drop = new List<string>();
+            foreach (string key in PathOldDepth.Keys)
+            {
+                if (!keep.Contains(key)) { drop.Add(key); }
+            }
+            foreach (string key in drop)
+            {
+                PathOldDepth.Remove(key);
             }
         }
 
-        private void Update(PathNode item, int remainDepth)
+        private PathNode Create(string path, int depth, bool forRoot = false)
         {
-            if (item.Type != FileType.Directory) return;
-
-            if (remainDepth == item.RemainDepth || roots.ContainsKey(item.FullPath))
+            if (depth < 0 || (!forRoot && root.GetChildIdx(path) != -1))
             {
-                if (item.RemainDepth < 1)
-                {
-                    return;
-                }
-                else
-                {
-                    if (item.LastWriteTime < Directory.GetLastWriteTime(item.FullPath))
-                    {
-                        List<PathNode> dropNodes = new List<PathNode>();
-                        List<string> exists = FileHelper.ListAll(item.FullPath, Extensions);
-
-                        foreach (string path in exists)
-                        {
-                            if (item.Children.ContainsKey(path))
-                            {   // 更新目录的子项
-                                if (item.Children[path].Type == FileType.Directory)
-                                {
-                                    Update(item.Children[path], item.RemainDepth - 1);
-                                }
-                                else if (item.Children[path].Type == FileType.Link && item.Children[path].LastWriteTime < System.IO.File.GetLastWriteTime(path))
-                                {
-                                    PathNode oldNode = item.Children[path].Children["target"];
-                                    oldNode.RemoveLnk(path);
-                                    if (oldNode.IsAlone() && island.ContainsKey(oldNode.FullPath))
-                                    {
-                                        island.Remove(oldNode.FullPath);
-                                    }
-
-                                    string target = FileHelper.LnkFile(path);
-                                    PathNode newNode = Find(target);
-                                    if (newNode != null)
-                                    {
-                                        newNode.AddLnk(path);
-                                    }
-                                    else
-                                    {
-                                        if (!island.ContainsKey(target))
-                                        {
-                                            island[target] = Create(target, item.RemainDepth - 1);
-                                        }
-                                        island[target].AddLnk(path);
-                                    }
-                                    linked.Add(newNode);
-                                    item.Children[path].Children["target"] = newNode;
-                                }
-                            }
-                            else
-                            {   // 添加目录子项
-                                if (item.RemainDepth > 0)
-                                {
-                                    PathNode child = Create(path, item.RemainDepth - 1);
-                                    item.Children[path] = child;
-                                    child.Parent = item;
-                                }
-                            }
-                        }
-
-                        // 删除目录子项
-                        foreach (PathNode child in item.Children.Values)
-                        {
-                            if (!exists.Contains(child.FullPath))
-                            {
-                                dropNodes.Add(child);
-                            }
-                        }
-                        foreach (PathNode node in dropNodes)
-                        {
-                            Delete(node);
-                        }
-
-                        item.LastWriteTime = Directory.GetLastWriteTime(item.FullPath);
-                    }
-                    else
-                    {
-                        foreach (string dir in FileHelper.ListDirectory(item.FullPath))
-                        {
-                            Update(item.Children[dir], item.RemainDepth - 1);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                int oldDepth = item.RemainDepth;
-                item.RemainDepth = remainDepth;
-                if (remainDepth < oldDepth)
-                {
-                    // 深度缩小
-                    if (remainDepth == 0)
-                    {
-                        foreach (PathNode node in item.Children.Values)
-                        {
-                            Delete(node);
-                        }
-                    }
-                    else
-                    {
-                        foreach (string dir in FileHelper.ListDirectory(item.FullPath))
-                        {
-                            Update(item.Children[dir], item.RemainDepth - 1);
-                        }
-                    }
-                }
-                else
-                {
-                    // 深度增加
-                    if (item.RemainDepth == 0)
-                    {
-                        foreach (string fn in FileHelper.ListAll(item.FullPath, Extensions))
-                        {
-                            if (island.ContainsKey(fn))  // 孤岛不再孤单
-                            {
-                                PathNode child = island[fn];
-                                island.Remove(fn);
-                                child.Parent = item;
-                                item.Children[fn] = child;
-                            }
-                            else
-                            {
-                                if (FileHelper.IsFile(fn))
-                                {
-                                    PathNode child = Create(fn, item.RemainDepth - 1);
-                                    child.Parent = item;
-                                    item.Children[fn] = child;
-                                }
-                                else
-                                {   // 文件夹特殊对待，因为可能被写到配置目录中
-                                    PathNode child = Find(fn);
-                                    if (child == null)
-                                    {
-                                        child = Create(fn, item.RemainDepth - 1);
-                                    }
-                                    child.Parent = item;
-                                    item.Children[fn] = child;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (string dir in FileHelper.ListDirectory(item.FullPath))
-                        {
-                            Update(item.Children[dir], item.RemainDepth - 1);
-                        }
-                    }
-                }
-            }
-        }
-
-        public PathNode Find(string path)
-        {
-            static PathNode _Find(PathNode node, string path)
-            {
-                if (!path.StartsWith(node.FileName)) return null;
-
-                if (path == node.FileName) return node;
-
-                path = path[(node.FileName.Length + 1)..];
-                if (path == "") return node;
-
-                if (node.Children == null) return null;
-
-                PathNode res;
-                foreach (PathNode child in node.Children.Values)
-                {
-                    res = _Find(child, path);
-                    if (res != null)
-                    {
-                        return res;
-                    }
-                }
                 return null;
             }
 
-            PathNode res = null;
-            foreach (PathNode node in roots.Values)
+            PathNode node = new PathNode(path);
+            foreach (string file in FileHelper.ListFile(path, Extensions))
             {
-                res = _Find(node, path);
-                if (res != null)
-                {
-                    break;
-                }
+                node.AddChild(file);
             }
-            return res;
+            foreach (string folder in FileHelper.ListDirectory(path))
+            {
+                node.AddChild(Create(folder, depth - 1));
+            }
+            return node;
         }
 
-        public List<PathNode> Search(string word)
+        private void Update(PathNode node, int depth)
         {
-            List<PathNode> res = new List<PathNode>();
-            var kvList = new List<(PathNode, double)> { };
-            Queue<PathNode> q = new Queue<PathNode>();
+            if (depth < 1) return;
 
-            void _check(PathNode item, bool exactMatch = false)
+            if (node.LastWriteTime < Directory.GetLastWriteTime(node.Path))
             {
-                double score;
-                if (exactMatch)
+                List<string> keep = new List<string>();
+                foreach (string file in FileHelper.ListFile(node.Path, Extensions))
                 {
-                    if (FileHelper.FileName(item.FullPath).ToLower() == word)
+                    keep.Add(file);
+                    node.TryAddChild(file);
+                }
+
+                foreach (string folder in FileHelper.ListDirectory(node.Path))
+                {
+                    keep.Add(folder);
+                    int idx = node.GetChildIdx(folder);
+                    if (idx != -1)
                     {
-                        score = 1;
+                        Update(node.GetChild(idx), depth - 1);
                     }
                     else
                     {
-                        score = 0;
+                        node.AddChild(Create(folder, depth - 1));
                     }
                 }
-                else
-                {
-                    score = item.MatchScore(word);
-                }
-
-                if (score > 0)
-                {
-                    score = Math.Max(score, SearchHistory.Get(item.FullPath));
-
-                    // 文件权重更高
-                    if (System.IO.File.Exists(item.FullPath))
-                    {
-                        score += 0.8;
-                    }
-
-                    if (kvList.Count == 0)
-                    {
-                        kvList.Add((item, score));
-                    }
-                    else if (kvList.Count < MaxCount)
-                    {
-                        int idx = kvList.Count - 1;
-                        if (kvList[idx].Item2 >= score)
-                        {
-                            kvList.Add((item, score));
-                        }
-                        else
-                        {
-                            kvList.Add(kvList[^1]);
-                            idx--;
-                            while (idx >= 0 && kvList[idx].Item2 < score)
-                            {
-                                kvList[idx + 1] = kvList[idx];
-                                idx--;
-                            }
-                            kvList[idx + 1] = (item, score);
-                        }
-                    }
-                    else if (kvList[MaxCount - 1].Item2 < score)
-                    {
-                        int idx = MaxCount - 2;
-                        while (idx >= 0 && kvList[idx].Item2 < score)
-                        {
-                            kvList[idx + 1] = kvList[idx];
-                            idx--;
-                        }
-                        kvList[idx + 1] = (item, score);
-                    }
-                }
+                node.Prune(keep);
+                node.LastWriteTime = Directory.GetLastWriteTime(node.Path);
             }
-
-            void _enqueue(PathNode item)
+            else
             {
-                if (item == null || !FileHelper.Exists(item.FullPath) || item.Type == FileType.Link) return;
-
-                if (item.FullPath.Contains("conda"))
+                List<string> folders = FileHelper.ListDirectory(node.Path);
+                foreach (PathNode child in node.ListChildren())
                 {
-
-                }
-
-                if (!PrivacyMode || !FileHelper.IsHidden(item.FullPath))
-                {
-                    q.Enqueue(item);
-                }
-                else
-                {
-                    _check(item, true);
-                }
-            }
-
-            foreach (PathNode item in island.Values)
-            {
-                _enqueue(item);
-            }
-
-            foreach (PathNode item in roots.Values)
-            {
-                _enqueue(item);
-            }
-
-            while (q.Count > 0)
-            {
-                for (int i = 0; i < q.Count; i++)
-                {
-                    PathNode item = q.Dequeue();
-                    _check(item);
-
-                    if (item.Children != null)
+                    if (folders.Contains(child.Path))
                     {
-                        foreach (PathNode child in item.Children.Values)
-                        {
-                            if (!roots.ContainsKey(child.FullPath))
-                            {
-                                _enqueue(item: child);
-                            }
-                        }
+                        Update(child, depth - 1);
                     }
                 }
             }
+        }
 
-            foreach (var i in kvList)
-            {
-                res.Add(i.Item1);
-            }
-            return res;
+        public List<SearchEntry> Search(string word)
+        {
+            return PathNode.Search(word, MaxCount);
         }
     }
 
@@ -764,7 +494,7 @@ namespace Toys.Client.Services
 
         public static void Load()
         {
-            if (!System.IO.File.Exists(historyFilename))
+            if (!File.Exists(historyFilename))
             {
                 records = new Dictionary<string, int>();
                 Dump();
@@ -786,12 +516,12 @@ namespace Toys.Client.Services
             try
             {
                 string json = JsonConvert.SerializeObject(records);
-                if (!System.IO.File.Exists(historyFilename))
+                if (!File.Exists(historyFilename))
                 {
                     FileInfo file_info = new FileInfo(historyFilename);
                     Directory.CreateDirectory(file_info.DirectoryName);
                 }
-                System.IO.File.WriteAllText(historyFilename, json);
+                File.WriteAllText(historyFilename, json);
             }
             catch (Exception)
             {
@@ -810,18 +540,17 @@ namespace Toys.Client.Services
         static readonly List<string> stopTargets = new List<string>()
         {
             "cmd.exe", "pythonw.exe", "pwsh.exe", "powershell.exe", "python.exe",
-            "explorer.exe",
+            "explorer.exe", "java.exe", "javacpl.exe", "javaw.exe", "javaws.exe",
         };
-        static readonly WshShell shell = new WshShell();
 
         public static bool IsDirectory(string path)
         {
-            return Exists(path) && System.IO.File.GetAttributes(path).HasFlag(FileAttributes.Directory);
+            return Exists(path) && File.GetAttributes(path).HasFlag(FileAttributes.Directory);
         }
 
         public static bool IsFile(string path)
         {
-            return Exists(path) && !System.IO.File.GetAttributes(path).HasFlag(FileAttributes.Directory);
+            return Exists(path) && !File.GetAttributes(path).HasFlag(FileAttributes.Directory);
         }
 
         public static string FileName(string path)
@@ -836,40 +565,10 @@ namespace Toys.Client.Services
 
         public static bool Exists(string path)
         {
-            return Directory.Exists(path) || System.IO.File.Exists(path);
+            return Directory.Exists(path) || File.Exists(path);
         }
 
-        public static string LnkFile(string lnkPath)
-        {
-            if (new FileInfo(lnkPath).Extension != ".lnk")
-            {
-                return null;
-            }
-
-            if (!System.IO.File.Exists(lnkPath))
-            {
-                return null;
-            }
-            string targetPath = ((IWshShortcut)shell.CreateShortcut(lnkPath)).TargetPath;
-            foreach (string path in stopTargets)
-            {   // 对于特殊 lnk 文件，将其视为真正文件
-                if (targetPath.EndsWith(path))
-                {
-                    return null;
-                }
-            }
-
-            if (Directory.Exists(targetPath) || System.IO.File.Exists(targetPath))
-            {
-                return targetPath;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public static List<string> ListAll(string path, List<string> exts)
+        public static List<string> ListFile(string path, List<string> exts)
         {
             List<string> res = new List<string>();
             if (Directory.Exists(path))
@@ -889,10 +588,6 @@ namespace Toys.Client.Services
                         }
                         if (valid) res.Add(f);
                     }
-                }
-                foreach (string d in ListDirectory(path))
-                {
-                    res.Add(d);
                 }
             }
             return res;
