@@ -29,6 +29,7 @@ namespace Toys.Client.Views
             DataContext = viewModel;
 
             InputBox.Focus();
+            Hide();
         }
 
         void ShowTranslateDetailDialog()
