@@ -25,7 +25,7 @@
     <Window.InputBindings>
         <KeyBinding
             Command="{Binding ActivateCommand}"
-            Gesture="Alt+Space"
+            Gesture="Alt+Q"
             HotkeyManager.RegisterGlobalHotkey="True" />
     </Window.InputBindings>
 

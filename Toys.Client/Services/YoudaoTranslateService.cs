@@ -130,10 +130,10 @@ namespace Toys.Client.Services
                 if (o.Translation != null)
                 {
                     string phonetic = "";
-                    if (o.Basic?.Phonetic != null)
-                    {
-                        phonetic = "[" + o.Basic.Phonetic + "] ";
-                    }
+                    //if (o.Basic?.Phonetic != null)
+                    //{
+                    //    phonetic = "[" + o.Basic.Phonetic + "] ";
+                    //}
                     var translations = o.Translation.ToArray();
                     string first = phonetic + translations[0];
                     answers.Add(new TranslateEntry(src, first));
